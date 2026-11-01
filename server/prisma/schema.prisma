@@ -1,0 +1,1327 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+enum RoleType {
+  SUPER_ADMIN
+  ADMIN
+  HOD
+  CLASS_INCHARGE
+  FACULTY
+  STUDENT
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  DROPPED
+  SUSPENDED
+}
+
+enum MaterialType {
+  PDF
+  PPT
+  DOCX
+  IMAGE
+  VIDEO_LINK
+  QUESTION_PAPER
+  LAB_MANUAL
+  SYLLABUS
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum CorrectionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AssessmentType {
+  INTERNAL_1
+  INTERNAL_2
+  ASSIGNMENT
+  LAB
+  PRACTICAL
+  VIVA
+  EXTERNAL
+}
+
+enum PublicationState {
+  DRAFT
+  PUBLISHED
+}
+
+enum NotificationCategory {
+  ATTENDANCE
+  ACADEMIC
+  EXAM
+  ASSIGNMENT
+  COMMUNITY
+  ANNOUNCEMENT
+  ADMIN
+}
+
+enum CalendarEventType {
+  HOLIDAY
+  EXAM
+  EVENT
+  ASSESSMENT_WINDOW
+}
+
+enum TimetableOverrideType {
+  CANCELLED
+  SUBSTITUTE
+}
+
+enum PostScope {
+  INSTITUTION
+  DEPARTMENT
+  YEAR
+  SECTION
+  PRIVATE_GROUP
+}
+
+enum PostSection {
+  UNIVERSITY_FEED
+  DEPARTMENT
+  YEAR_AND_SECTION
+  CLUBS
+  EVENTS
+  ACHIEVEMENTS
+  LOST_AND_FOUND
+  PLACEMENTS
+}
+
+enum ContentReportStatus {
+  PENDING
+  REVIEWED
+  DISMISSED
+  ACTION_TAKEN
+}
+
+enum ContentReportTarget {
+  POST
+  COMMENT
+  DOUBT
+  DOUBT_REPLY
+}
+
+model Institution {
+  id                         String   @id @map("_id") @default(uuid())
+  name                       String
+  code                       String   @unique
+  domain                     String?
+  logoUrl                    String?  @map("logo_url")
+  defaultAttendanceThreshold Float    @default(75.0) @map("default_attendance_threshold")
+  isActive                   Boolean  @default(true) @map("is_active")
+  createdAt                  DateTime @default(now()) @map("created_at")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  users                   User[]
+  departments             Department[]
+  programs                Program[]
+  academicYears           AcademicYear[]
+  semesters               Semester[]
+  sections                Section[]
+  subjects                Subject[]
+  studentEnrollments      StudentEnrollment[]
+  facultyAssignments      FacultyAssignment[]
+  auditLogs               AuditLog[]
+  refreshTokens           RefreshToken[]
+  units                   Unit[]
+  studyMaterials          StudyMaterial[]
+  materialVersions        MaterialVersion[]
+  materialViews           MaterialView[]
+  materialDownloads       MaterialDownload[]
+  materialBookmarks       MaterialBookmark[]
+  classroomSessions       ClassroomSession[]
+  canvasPages             CanvasPage[]
+  canvasAssets            CanvasAsset[]
+  attendanceSessions      AttendanceSession[]
+  attendanceRecords       AttendanceRecord[]
+  attendanceCorrections   AttendanceCorrectionRequest[]
+  gradeRules              GradeRule[]
+  assessments             Assessment[]
+  studentMarks            StudentMark[]
+  markCorrections         MarkCorrectionRequest[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
+  emailJobs               EmailJobQueue[]
+  doubts                  Doubt[]
+  doubtReplies            DoubtReply[]
+  doubtVotes              DoubtVote[]
+  announcements           Announcement[]
+  timetableSlots          TimetableSlot[]
+  periods                 Period[]
+  calendarEvents          AcademicCalendarEvent[]
+  timetableOverrides      TimetableOverride[]
+  communityPosts          CommunityPost[]
+  postPolls               PostPoll[]
+  pollVotes               PollVote[]
+  postLikes               PostLike[]
+  postComments            PostComment[]
+  contentReports          ContentReport[]
+  guardianConsents        GuardianConsent[]
+  dataRetentionSettings   InstitutionDataRetention?
+  demoRequests            DemoRequest[]
+
+  @@map("institutions")
+  @@index([domain])
+}
+
+model DemoRequest {
+  id                String   @id @map("_id") @default(uuid())
+  // Optional until a prospect becomes a registered tenant.
+  institutionId     String?  @map("institution_id")
+  contactName       String   @map("contact_name")
+  institutionName   String   @map("institution_name")
+  role              String
+  email             String
+  message           String
+  status            String   @default("NEW")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  institution Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+
+  @@index([institutionId])
+  @@index([createdAt])
+  @@map("demo_requests")
+}
+
+model User {
+  id                String    @id @map("_id") @default(uuid())
+  institutionId     String    @map("institution_id")
+  email             String
+  passwordHash      String    @map("password_hash")
+  firstName         String    @map("first_name")
+  lastName          String    @map("last_name")
+  role              RoleType  @default(STUDENT)
+  mustResetPassword Boolean   @default(true) @map("must_reset_password")
+  isActive          Boolean   @default(true) @map("is_active")
+  deactivatedAt     DateTime? @map("deactivated_at")
+  isMinor           Boolean   @default(false) @map("is_minor")
+  isAnonymized      Boolean   @default(false) @map("is_anonymized")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  institution              Institution       @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  refreshTokens            RefreshToken[]
+  auditLogs                AuditLog[]
+  guardianConsents         GuardianConsent[] @relation("GuardianConsentSubject")
+  recordedGuardianConsents GuardianConsent[] @relation("GuardianConsentRecorder")
+
+  // Role-specific relations
+  departmentId String?     @map("department_id")
+  department   Department? @relation(fields: [departmentId], references: [id])
+
+  enrollments                   StudentEnrollment[]
+  facultyAssignments            FacultyAssignment[]
+  createdMaterials              StudyMaterial[]               @relation("FacultyCreatedMaterials")
+  materialViews                 MaterialView[]
+  materialDownloads             MaterialDownload[]
+  materialBookmarks             MaterialBookmark[]
+  classroomSessions             ClassroomSession[]            @relation("FacultyClassroomSessions")
+  conductedAttendanceSessions   AttendanceSession[]           @relation("FacultyConductedSessions")
+  attendanceRecords             AttendanceRecord[]            @relation("StudentAttendanceRecords")
+  correctionRequests            AttendanceCorrectionRequest[] @relation("StudentCorrectionRequests")
+  reviewedCorrections           AttendanceCorrectionRequest[] @relation("FacultyReviewedCorrections")
+  createdAssessments            Assessment[]                  @relation("FacultyCreatedAssessments")
+  studentMarks                  StudentMark[]                 @relation("StudentAwardedMarks")
+  markCorrectionRequests        MarkCorrectionRequest[]       @relation("StudentMarkCorrections")
+  reviewedMarkCorrections       MarkCorrectionRequest[]       @relation("FacultyReviewedMarkCorrections")
+  notifications                 Notification[]
+  notificationPreferences       NotificationPreference[]
+  askedDoubts                   Doubt[]                       @relation("StudentAskedDoubts")
+  answeredDoubts                Doubt[]                       @relation("FacultyAnsweredDoubts")
+  doubtReplies                  DoubtReply[]                  @relation("UserDoubtReplies")
+  verifiedDoubtReplies          DoubtReply[]                  @relation("FacultyVerifiedReplies")
+  doubtVotes                    DoubtVote[]
+  authoredAnnouncements         Announcement[]                @relation("AuthorAnnouncements")
+  facultyTimetableSlots         TimetableSlot[]               @relation("FacultyTimetableSlots")
+  substitutedTimetableOverrides TimetableOverride[]           @relation("SubstituteFaculty")
+  createdCalendarEvents         AcademicCalendarEvent[]       @relation("CalendarEventCreator")
+  createdTimetableOverrides     TimetableOverride[]           @relation("TimetableOverrideCreator")
+  communityPosts                CommunityPost[]
+  postLikes                     PostLike[]
+  postComments                  PostComment[]
+  pollVotes                     PollVote[]
+  contentReports                ContentReport[]               @relation("UserReportedContent")
+  reviewedReports               ContentReport[]               @relation("AdminReviewedReports")
+
+  @@unique([institutionId, email])
+  @@index([institutionId])
+  @@index([role])
+  @@index([institutionId, isActive, deactivatedAt])
+  @@map("users")
+}
+
+model RefreshToken {
+  id                  String    @id @map("_id") @default(uuid())
+  institutionId       String    @map("institution_id")
+  userId              String    @map("user_id")
+  tokenHash           String    @unique @map("token_hash")
+  expiresAt           DateTime  @map("expires_at")
+  revokedAt           DateTime? @map("revoked_at")
+  replacedByTokenHash String?   @map("replaced_by_token_hash")
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([institutionId])
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Department {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  name          String
+  code          String
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  institution    Institution     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  programs       Program[]
+  users          User[]
+  communityPosts CommunityPost[]
+
+  @@unique([institutionId, code])
+  @@index([institutionId])
+  @@map("departments")
+}
+
+model Program {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  departmentId  String   @map("department_id")
+  name          String
+  code          String
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  department  Department  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  semesters   Semester[]
+
+  @@unique([institutionId, code])
+  @@index([institutionId])
+  @@index([departmentId])
+  @@map("programs")
+}
+
+model AcademicYear {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  name          String // e.g. "2025-2026"
+  startDate     DateTime @map("start_date")
+  endDate       DateTime @map("end_date")
+  isCurrent     Boolean  @default(false) @map("is_current")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  institution    Institution     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  semesters      Semester[]
+  communityPosts CommunityPost[]
+
+  @@unique([institutionId, name])
+  @@index([institutionId])
+  @@map("academic_years")
+}
+
+model Semester {
+  id             String   @id @map("_id") @default(uuid())
+  institutionId  String   @map("institution_id")
+  academicYearId String   @map("academic_year_id")
+  programId      String   @map("program_id")
+  semesterNumber Int      @map("semester_number") // e.g. 1, 2, 3
+  name           String // e.g. "Semester 1"
+  startDate      DateTime @map("start_date")
+  endDate        DateTime @map("end_date")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  institution  Institution  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  program      Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
+  sections     Section[]
+  subjects     Subject[]
+
+  @@unique([institutionId, programId, academicYearId, semesterNumber])
+  @@index([institutionId])
+  @@index([academicYearId])
+  @@index([programId])
+  @@map("semesters")
+}
+
+model Section {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  semesterId    String   @map("semester_id")
+  name          String // e.g. "Section A", "Section B"
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  institution        Institution             @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  semester           Semester                @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  enrollments        StudentEnrollment[]
+  facultyAssignments FacultyAssignment[]
+  targetMaterials    MaterialTargetSection[]
+  classroomSessions  ClassroomSession[]
+  attendanceSessions AttendanceSession[]
+  assessments        Assessment[]
+  timetableSlots     TimetableSlot[]
+  calendarEvents     AcademicCalendarEvent[]
+  communityPosts     CommunityPost[]
+
+  @@unique([institutionId, semesterId, name])
+  @@index([institutionId])
+  @@index([semesterId])
+  @@map("sections")
+}
+
+model Subject {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  semesterId    String   @map("semester_id")
+  name          String
+  code          String
+  credits       Float    @default(3.0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  institution        Institution         @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  semester           Semester            @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  facultyAssignments FacultyAssignment[]
+  units              Unit[]
+  materials          StudyMaterial[]
+  classroomSessions  ClassroomSession[]
+  attendanceSessions AttendanceSession[]
+  assessments        Assessment[]
+  doubts             Doubt[]
+  timetableSlots     TimetableSlot[]
+
+  @@unique([institutionId, code])
+  @@index([institutionId])
+  @@index([semesterId])
+  @@map("subjects")
+}
+
+model StudentEnrollment {
+  id            String           @id @map("_id") @default(uuid())
+  institutionId String           @map("institution_id")
+  studentId     String           @map("student_id")
+  sectionId     String           @map("section_id")
+  rollNumber    String           @map("roll_number")
+  status        EnrollmentStatus @default(ACTIVE)
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  student     User        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  section     Section     @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([institutionId, sectionId, studentId])
+  @@unique([institutionId, rollNumber])
+  @@index([institutionId])
+  @@index([studentId])
+  @@index([sectionId])
+  @@map("student_enrollments")
+}
+
+model FacultyAssignment {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  facultyId     String   @map("faculty_id")
+  subjectId     String   @map("subject_id")
+  sectionId     String   @map("section_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  faculty     User        @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  subject     Subject     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  section     Section     @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([institutionId, facultyId, subjectId, sectionId])
+  @@index([institutionId])
+  @@index([facultyId])
+  @@index([subjectId])
+  @@index([sectionId])
+  @@map("faculty_assignments")
+}
+
+// ---------------- Study Materials & Units ----------------
+
+model Unit {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  subjectId     String   @map("subject_id")
+  unitNumber    Int      @map("unit_number")
+  title         String
+  description   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  institution Institution     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  subject     Subject         @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  materials   StudyMaterial[]
+
+  @@unique([institutionId, subjectId, unitNumber])
+  @@index([institutionId])
+  @@index([subjectId])
+  @@map("units")
+}
+
+model StudyMaterial {
+  id             String       @id @map("_id") @default(uuid())
+  institutionId  String       @map("institution_id")
+  subjectId      String       @map("subject_id")
+  unitId         String?      @map("unit_id")
+  createdById    String       @map("created_by_id")
+  title          String
+  description    String?
+  type           MaterialType
+  externalUrl    String?      @map("external_url") // For VIDEO_LINK or external resources
+  visibleFrom    DateTime     @default(now()) @map("visible_from")
+  allowDownload  Boolean      @default(true) @map("allow_download")
+  currentVersion Int          @default(1) @map("current_version")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  subject     Subject     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  unit        Unit?       @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  createdBy   User        @relation("FacultyCreatedMaterials", fields: [createdById], references: [id], onDelete: Cascade)
+
+  versions       MaterialVersion[]
+  targetSections MaterialTargetSection[]
+  views          MaterialView[]
+  downloads      MaterialDownload[]
+  bookmarks      MaterialBookmark[]
+
+  @@index([institutionId])
+  @@index([subjectId])
+  @@index([unitId])
+  @@index([createdById])
+  @@index([visibleFrom])
+  @@map("study_materials")
+}
+
+model MaterialVersion {
+  id               String   @id @map("_id") @default(uuid())
+  institutionId    String   @map("institution_id")
+  studyMaterialId  String   @map("study_material_id")
+  versionNumber    Int      @map("version_number")
+  originalFilename String   @map("original_filename")
+  mimeType         String   @map("mime_type")
+  fileSizeBytes    Int      @map("file_size_bytes")
+  s3Key            String   @map("s3_key")
+  convertedS3Key   String?  @map("converted_s3_key") // PDF version for PPT/DOCX inline preview
+  isConverted      Boolean  @default(false) @map("is_converted")
+  changeNote       String?  @map("change_note")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  institution   Institution   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studyMaterial StudyMaterial @relation(fields: [studyMaterialId], references: [id], onDelete: Cascade)
+
+  @@unique([studyMaterialId, versionNumber])
+  @@index([institutionId])
+  @@index([studyMaterialId])
+  @@map("material_versions")
+}
+
+model MaterialTargetSection {
+  id              String @id @map("_id") @default(uuid())
+  studyMaterialId String @map("study_material_id")
+  sectionId       String @map("section_id")
+
+  studyMaterial StudyMaterial @relation(fields: [studyMaterialId], references: [id], onDelete: Cascade)
+  section       Section       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([studyMaterialId, sectionId])
+  @@index([studyMaterialId])
+  @@index([sectionId])
+  @@map("material_target_sections")
+}
+
+model MaterialView {
+  id              String   @id @map("_id") @default(uuid())
+  institutionId   String   @map("institution_id")
+  studyMaterialId String   @map("study_material_id")
+  userId          String   @map("user_id")
+  viewedAt        DateTime @default(now()) @map("viewed_at")
+
+  institution   Institution   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studyMaterial StudyMaterial @relation(fields: [studyMaterialId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([institutionId])
+  @@index([studyMaterialId])
+  @@index([userId])
+  @@index([viewedAt])
+  @@map("material_views")
+}
+
+model MaterialDownload {
+  id              String   @id @map("_id") @default(uuid())
+  institutionId   String   @map("institution_id")
+  studyMaterialId String   @map("study_material_id")
+  userId          String   @map("user_id")
+  downloadedAt    DateTime @default(now()) @map("downloaded_at")
+
+  institution   Institution   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studyMaterial StudyMaterial @relation(fields: [studyMaterialId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([institutionId])
+  @@index([studyMaterialId])
+  @@index([userId])
+  @@index([downloadedAt])
+  @@map("material_downloads")
+}
+
+model MaterialBookmark {
+  id              String   @id @map("_id") @default(uuid())
+  institutionId   String   @map("institution_id")
+  studyMaterialId String   @map("study_material_id")
+  userId          String   @map("user_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  institution   Institution   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studyMaterial StudyMaterial @relation(fields: [studyMaterialId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([studyMaterialId, userId])
+  @@index([institutionId])
+  @@index([userId])
+  @@map("material_bookmarks")
+}
+
+model AuditLog {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  userId        String?  @map("user_id")
+  action        String // e.g. "AUTH_LOGIN", "PASSWORD_CHANGE", "UPDATE_MARKS"
+  resource      String // e.g. "user", "marks", "attendance"
+  resourceId    String?  @map("resource_id")
+  details       Json? // Before/after state or metadata
+  ipAddress     String?  @map("ip_address")
+  userAgent     String?  @map("user_agent")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([institutionId])
+  @@index([userId])
+  @@index([action])
+  @@map("audit_logs")
+}
+
+model GuardianConsent {
+  id               String    @id @map("_id") @default(uuid())
+  institutionId    String    @map("institution_id")
+  userId           String    @map("user_id")
+  recordedByUserId String?   @map("recorded_by_user_id")
+  guardianName     String    @map("guardian_name")
+  guardianEmail    String?   @map("guardian_email")
+  relationship     String
+  consentMethod    String    @map("consent_method")
+  policyVersion    String    @map("policy_version")
+  consentGivenAt   DateTime  @default(now()) @map("consent_given_at")
+  revokedAt        DateTime? @map("revoked_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  user        User        @relation("GuardianConsentSubject", fields: [userId], references: [id], onDelete: Cascade)
+  recorder    User?       @relation("GuardianConsentRecorder", fields: [recordedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([institutionId, userId, revokedAt])
+  @@map("guardian_consents")
+}
+
+model InstitutionDataRetention {
+  id                           String   @id @map("_id") @default(uuid())
+  institutionId                String   @unique @map("institution_id")
+  inactiveAccountRetentionDays Int?     @map("inactive_account_retention_days")
+  auditLogRetentionDays        Int?     @map("audit_log_retention_days")
+  preserveAcademicRecords      Boolean  @default(true) @map("preserve_academic_records")
+  updatedAt                    DateTime @updatedAt @map("updated_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@map("institution_data_retention")
+}
+
+// ---------------- Digital Classroom Canvas ----------------
+
+model ClassroomSession {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  subjectId     String   @map("subject_id")
+  sectionId     String   @map("section_id")
+  facultyId     String   @map("faculty_id")
+  title         String
+  sessionDate   DateTime @default(now()) @map("session_date")
+  allowDownload Boolean  @default(true) @map("allow_download")
+  isArchived    Boolean  @default(false) @map("is_archived")
+  completedAt   DateTime? @map("completed_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  institution Institution  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  subject     Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  section     Section      @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  faculty     User         @relation("FacultyClassroomSessions", fields: [facultyId], references: [id], onDelete: Cascade)
+  pages       CanvasPage[]
+  assets      CanvasAsset[]
+
+  @@index([institutionId])
+  @@index([subjectId])
+  @@index([sectionId])
+  @@index([facultyId])
+  @@index([sessionDate])
+  @@map("classroom_sessions")
+}
+
+model CanvasAsset {
+  id                 String   @id @map("_id") @default(uuid())
+  institutionId      String   @map("institution_id")
+  classroomSessionId String   @map("classroom_session_id")
+  s3Key              String   @map("s3_key")
+  originalFilename   String   @map("original_filename")
+  mimeType           String   @map("mime_type")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  institution Institution      @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  session     ClassroomSession @relation(fields: [classroomSessionId], references: [id], onDelete: Cascade)
+
+  @@index([institutionId])
+  @@index([classroomSessionId])
+  @@map("canvas_assets")
+}
+
+model CanvasPage {
+  id                 String   @id @map("_id") @default(uuid())
+  institutionId      String   @map("institution_id")
+  classroomSessionId String   @map("classroom_session_id")
+  pageNumber         Int      @map("page_number")
+  backgroundAssetUrl String?  @map("background_asset_url") // Slide or image background
+  strokesJson        Json     @default("[]") @map("strokes_json") // Compact Konva shapes/lines/text
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  institution Institution      @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  session     ClassroomSession @relation(fields: [classroomSessionId], references: [id], onDelete: Cascade)
+
+  @@unique([classroomSessionId, pageNumber])
+  @@index([institutionId])
+  @@index([classroomSessionId])
+  @@map("canvas_pages")
+}
+
+// ---------------- Attendance Module ----------------
+
+model AttendanceSession {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  subjectId     String   @map("subject_id")
+  sectionId     String   @map("section_id")
+  facultyId     String   @map("faculty_id")
+  sessionDate   DateTime @default(now()) @map("session_date")
+  periodNumber  Int      @default(1) @map("period_number")
+  topicCovered  String?  @map("topic_covered")
+  isCompleted   Boolean  @default(false) @map("is_completed") // For pending dashboard widget
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  institution Institution        @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  subject     Subject            @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  section     Section            @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  faculty     User               @relation("FacultyConductedSessions", fields: [facultyId], references: [id], onDelete: Cascade)
+  records     AttendanceRecord[]
+
+  @@unique([institutionId, subjectId, sectionId, sessionDate, periodNumber])
+  @@index([institutionId])
+  @@index([subjectId])
+  @@index([sectionId])
+  @@index([facultyId])
+  @@index([sessionDate])
+  @@index([isCompleted])
+  @@index([institutionId, sectionId, sessionDate], map: "attendance_session_tenant_section_date_idx")
+  @@map("attendance_sessions")
+}
+
+model AttendanceRecord {
+  id                  String           @id @map("_id") @default(uuid())
+  institutionId       String           @map("institution_id")
+  attendanceSessionId String           @map("attendance_session_id")
+  studentId           String           @map("student_id")
+  status              AttendanceStatus @default(PRESENT)
+  remarks             String?
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+
+  institution Institution                   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  session     AttendanceSession             @relation(fields: [attendanceSessionId], references: [id], onDelete: Cascade)
+  student     User                          @relation("StudentAttendanceRecords", fields: [studentId], references: [id], onDelete: Cascade)
+  corrections AttendanceCorrectionRequest[]
+
+  @@unique([attendanceSessionId, studentId])
+  @@index([institutionId])
+  @@index([studentId])
+  @@index([attendanceSessionId])
+  @@index([status])
+  @@index([institutionId, studentId, attendanceSessionId], map: "attendance_record_tenant_student_session_idx")
+  @@map("attendance_records")
+}
+
+model AttendanceCorrectionRequest {
+  id                 String           @id @map("_id") @default(uuid())
+  institutionId      String           @map("institution_id")
+  attendanceRecordId String           @map("attendance_record_id")
+  studentId          String           @map("student_id")
+  requestedStatus    AttendanceStatus @map("requested_status")
+  reason             String
+  status             CorrectionStatus @default(PENDING)
+  reviewedById       String?          @map("reviewed_by_id")
+  reviewRemarks      String?          @map("review_remarks")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  institution Institution      @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  record      AttendanceRecord @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  student     User             @relation("StudentCorrectionRequests", fields: [studentId], references: [id], onDelete: Cascade)
+  reviewedBy  User?            @relation("FacultyReviewedCorrections", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([institutionId])
+  @@index([studentId])
+  @@index([attendanceRecordId])
+  @@index([status])
+  @@map("attendance_correction_requests")
+}
+
+// ---------------- Marks & Grading Module ----------------
+
+model GradeRule {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  gradeLetter   String   @map("grade_letter") // e.g. "A+", "A", "B", "F"
+  gradePoint    Float    @map("grade_point") // e.g. 10.0, 9.0, 8.0, 0.0
+  minPercentage Float    @map("min_percentage") // e.g. 90.0, 80.0
+  maxPercentage Float    @map("max_percentage") // e.g. 100.0, 89.9
+  isPass        Boolean  @default(true) @map("is_pass")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@unique([institutionId, gradeLetter])
+  @@index([institutionId])
+  @@map("grade_rules")
+}
+
+model Assessment {
+  id            String           @id @map("_id") @default(uuid())
+  institutionId String           @map("institution_id")
+  subjectId     String           @map("subject_id")
+  sectionId     String           @map("section_id")
+  facultyId     String           @map("faculty_id")
+  name          String // e.g. "Midterm Internal Exam 1"
+  type          AssessmentType
+  maxMarks      Float            @map("max_marks") // e.g. 50
+  weightage     Float            @default(1.0) // Relative or percentage weightage
+  state         PublicationState @default(DRAFT)
+  publishedAt   DateTime?        @map("published_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  institution Institution   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  subject     Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  section     Section       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  faculty     User          @relation("FacultyCreatedAssessments", fields: [facultyId], references: [id], onDelete: Cascade)
+  marks       StudentMark[]
+
+  @@index([institutionId])
+  @@index([subjectId])
+  @@index([sectionId])
+  @@index([facultyId])
+  @@index([state])
+  @@index([institutionId, sectionId, state], map: "assessment_tenant_section_state_idx")
+  @@map("assessments")
+}
+
+model StudentMark {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  assessmentId  String   @map("assessment_id")
+  studentId     String   @map("student_id")
+  score         Float? // null if absent/exempt
+  gradeLetter   String?  @map("grade_letter")
+  isAbsent      Boolean  @default(false) @map("is_absent")
+  remarks       String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  institution Institution             @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  assessment  Assessment              @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  student     User                    @relation("StudentAwardedMarks", fields: [studentId], references: [id], onDelete: Cascade)
+  corrections MarkCorrectionRequest[]
+
+  @@unique([assessmentId, studentId])
+  @@index([institutionId])
+  @@index([studentId])
+  @@index([assessmentId])
+  @@index([institutionId, studentId, assessmentId], map: "student_mark_tenant_student_assessment_idx")
+  @@map("student_marks")
+}
+
+model MarkCorrectionRequest {
+  id            String           @id @map("_id") @default(uuid())
+  institutionId String           @map("institution_id")
+  studentMarkId String           @map("student_mark_id")
+  studentId     String           @map("student_id")
+  claimedScore  Float            @map("claimed_score")
+  reason        String
+  status        CorrectionStatus @default(PENDING)
+  reviewedById  String?          @map("reviewed_by_id")
+  reviewRemarks String?          @map("review_remarks")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  studentMark StudentMark @relation(fields: [studentMarkId], references: [id], onDelete: Cascade)
+  student     User        @relation("StudentMarkCorrections", fields: [studentId], references: [id], onDelete: Cascade)
+  reviewedBy  User?       @relation("FacultyReviewedMarkCorrections", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([institutionId])
+  @@index([studentId])
+  @@index([studentMarkId])
+  @@index([status])
+  @@map("mark_correction_requests")
+}
+
+// ---------------- Centralized Notification System ----------------
+
+model Notification {
+  id            String               @id @map("_id") @default(uuid())
+  institutionId String               @map("institution_id")
+  userId        String               @map("user_id")
+  category      NotificationCategory
+  title         String
+  body          String
+  link          String?
+  isRead        Boolean              @default(false) @map("is_read")
+  readAt        DateTime?            @map("read_at")
+  createdAt     DateTime             @default(now()) @map("created_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([institutionId])
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id            String               @id @map("_id") @default(uuid())
+  institutionId String               @map("institution_id")
+  userId        String               @map("user_id")
+  category      NotificationCategory
+  inAppEnabled  Boolean              @default(true) @map("in_app_enabled")
+  emailEnabled  Boolean              @default(true) @map("email_enabled")
+  createdAt     DateTime             @default(now()) @map("created_at")
+  updatedAt     DateTime             @updatedAt @map("updated_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([institutionId, userId, category])
+  @@index([institutionId])
+  @@index([userId])
+  @@map("notification_preferences")
+}
+
+model EmailJobQueue {
+  id             String    @id @map("_id") @default(uuid())
+  institutionId  String    @map("institution_id")
+  recipientEmail String    @map("recipient_email")
+  subject        String
+  htmlBody       String    @map("html_body")
+  status         String    @default("PENDING") // PENDING, SENT, FAILED
+  attempts       Int       @default(0)
+  lastError      String?   @map("last_error")
+  scheduledAt    DateTime  @default(now()) @map("scheduled_at")
+  sentAt         DateTime? @map("sent_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@index([institutionId])
+  @@index([status, scheduledAt])
+  @@map("email_job_queue")
+}
+
+// ---------------- Doubts, Announcements & Timetable ----------------
+
+model Doubt {
+  id              String    @id @map("_id") @default(uuid())
+  institutionId   String    @map("institution_id")
+  subjectId       String    @map("subject_id")
+  studentId       String    @map("student_id")
+  facultyId       String?   @map("faculty_id")
+  title           String
+  content         String
+  reply           String?
+  codeSnippet     String?   @map("code_snippet")
+  codeLanguage    String?   @map("code_language")
+  attachments     Json?
+  tags            Json?
+  isAnonymous     Boolean   @default(false) @map("is_anonymous")
+  isPinned        Boolean   @default(false) @map("is_pinned")
+  isResolved      Boolean   @default(false) @map("is_resolved")
+  upvotesCount    Int       @default(0) @map("upvotes_count")
+  acceptedReplyId String?   @map("accepted_reply_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  resolvedAt      DateTime? @map("resolved_at")
+
+  institution   Institution  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  subject       Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  student       User         @relation("StudentAskedDoubts", fields: [studentId], references: [id], onDelete: Cascade)
+  faculty       User?        @relation("FacultyAnsweredDoubts", fields: [facultyId], references: [id], onDelete: SetNull)
+  acceptedReply DoubtReply?  @relation("AcceptedReply", fields: [acceptedReplyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies       DoubtReply[] @relation("DoubtReplies")
+  votes         DoubtVote[]
+
+  @@index([institutionId])
+  @@index([subjectId])
+  @@index([studentId])
+  @@index([facultyId])
+  @@index([isResolved])
+  @@index([isPinned])
+  @@map("doubts")
+}
+
+model DoubtReply {
+  id                String   @id @map("_id") @default(uuid())
+  institutionId     String   @map("institution_id")
+  doubtId           String   @map("doubt_id")
+  authorId          String   @map("author_id")
+  content           String
+  codeSnippet       String?  @map("code_snippet")
+  codeLanguage      String?  @map("code_language")
+  isFacultyVerified Boolean  @default(false) @map("is_faculty_verified")
+  verifiedById      String?  @map("verified_by_id")
+  upvotesCount      Int      @default(0) @map("upvotes_count")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  institution       Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  doubt             Doubt       @relation("DoubtReplies", fields: [doubtId], references: [id], onDelete: Cascade)
+  author            User        @relation("UserDoubtReplies", fields: [authorId], references: [id], onDelete: Cascade)
+  verifiedBy        User?       @relation("FacultyVerifiedReplies", fields: [verifiedById], references: [id], onDelete: SetNull)
+  votes             DoubtVote[]
+  acceptedForDoubts Doubt[]     @relation("AcceptedReply")
+
+  @@index([institutionId])
+  @@index([doubtId])
+  @@index([authorId])
+  @@map("doubt_replies")
+}
+
+model DoubtVote {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  userId        String   @map("user_id")
+  doubtId       String?  @map("doubt_id")
+  replyId       String?  @map("reply_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  doubt       Doubt?      @relation(fields: [doubtId], references: [id], onDelete: Cascade)
+  reply       DoubtReply? @relation(fields: [replyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, doubtId])
+  @@unique([userId, replyId])
+  @@index([institutionId])
+  @@index([userId])
+  @@index([doubtId])
+  @@index([replyId])
+  @@map("doubt_votes")
+}
+
+// ---------------- Community Module ----------------
+
+model CommunityPost {
+  id                     String      @id @map("_id") @default(uuid())
+  institutionId          String      @map("institution_id")
+  authorId               String      @map("author_id")
+  scope                  PostScope   @default(INSTITUTION)
+  departmentId           String?     @map("department_id")
+  academicYearId         String?     @map("academic_year_id")
+  sectionId              String?     @map("section_id")
+  section                PostSection @default(UNIVERSITY_FEED)
+  title                  String?
+  content                String
+  images                 Json? // Array of image URLs
+  documents              Json? // Array of { name: string, url: string, size?: number }
+  links                  Json? // Array of string URLs
+  hashtags               Json? // Array of string tags e.g. ["#hackathon", "#exam"]
+  mentions               Json? // Array of string user mentions
+  isVerifiedAnnouncement Boolean     @default(false) @map("is_verified_announcement")
+  isPinned               Boolean     @default(false) @map("is_pinned")
+  likesCount             Int         @default(0) @map("likes_count")
+  commentsCount          Int         @default(0) @map("comments_count")
+  createdAt              DateTime    @default(now()) @map("created_at")
+  updatedAt              DateTime    @updatedAt @map("updated_at")
+
+  institution  Institution     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  author       User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  department   Department?     @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  academicYear AcademicYear?   @relation(fields: [academicYearId], references: [id], onDelete: SetNull)
+  sectionRef   Section?        @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  poll         PostPoll?
+  likes        PostLike[]
+  comments     PostComment[]
+  reports      ContentReport[]
+
+  @@index([institutionId])
+  @@index([authorId])
+  @@index([scope])
+  @@index([section])
+  @@index([departmentId])
+  @@index([academicYearId])
+  @@index([sectionId])
+  @@index([createdAt])
+  @@index([institutionId, isPinned, createdAt], map: "community_post_tenant_pinned_date_idx")
+  @@index([institutionId, scope, createdAt], map: "community_post_tenant_scope_date_idx")
+  @@map("community_posts")
+}
+
+model PostPoll {
+  id            String    @id @map("_id") @default(uuid())
+  institutionId String    @map("institution_id")
+  postId        String    @unique @map("post_id")
+  question      String
+  options       Json // Array of { id: string, text: string, voteCount: number }
+  expiresAt     DateTime? @map("expires_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  institution Institution   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  post        CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  votes       PollVote[]
+
+  @@index([institutionId])
+  @@map("post_polls")
+}
+
+model PollVote {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  pollId        String   @map("poll_id")
+  userId        String   @map("user_id")
+  optionIndex   Int      @map("option_index")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  poll        PostPoll    @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, userId])
+  @@index([institutionId])
+  @@index([pollId])
+  @@index([userId])
+  @@map("poll_votes")
+}
+
+model PostLike {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  postId        String   @map("post_id")
+  userId        String   @map("user_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  institution Institution   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  post        CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([institutionId])
+  @@index([postId])
+  @@index([userId])
+  @@map("post_likes")
+}
+
+model PostComment {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  postId        String   @map("post_id")
+  authorId      String   @map("author_id")
+  content       String
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  institution Institution   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  post        CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author      User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([institutionId])
+  @@index([postId])
+  @@index([authorId])
+  @@index([postId, createdAt], map: "post_comment_post_date_idx")
+  @@map("post_comments")
+}
+
+model ContentReport {
+  id            String              @id @map("_id") @default(uuid())
+  institutionId String              @map("institution_id")
+  reporterId    String              @map("reporter_id")
+  targetType    ContentReportTarget @map("target_type")
+  targetId      String              @map("target_id")
+  postId        String?             @map("post_id")
+  reason        String
+  details       String?
+  status        ContentReportStatus @default(PENDING)
+  reviewedById  String?             @map("reviewed_by_id")
+  reviewedAt    DateTime?           @map("reviewed_at")
+  actionNotes   String?             @map("action_notes")
+  createdAt     DateTime            @default(now()) @map("created_at")
+
+  institution Institution    @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  reporter    User           @relation("UserReportedContent", fields: [reporterId], references: [id], onDelete: Cascade)
+  reviewedBy  User?          @relation("AdminReviewedReports", fields: [reviewedById], references: [id], onDelete: SetNull)
+  post        CommunityPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([institutionId])
+  @@index([reporterId])
+  @@index([targetType, targetId])
+  @@index([status])
+  @@map("content_reports")
+}
+
+model Announcement {
+  id            String    @id @map("_id") @default(uuid())
+  institutionId String    @map("institution_id")
+  authorId      String    @map("author_id")
+  title         String
+  content       String
+  targetRole    RoleType? @map("target_role")
+  isPinned      Boolean   @default(false) @map("is_pinned")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  author      User        @relation("AuthorAnnouncements", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([institutionId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("announcements")
+}
+
+model TimetableSlot {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  sectionId     String   @map("section_id")
+  subjectId     String   @map("subject_id")
+  facultyId     String   @map("faculty_id")
+  periodId      String?  @map("period_id")
+  dayOfWeek     Int      @map("day_of_week") // 1 = Mon, 2 = Tue, ..., 6 = Sat
+  periodNumber  Int      @map("period_number")
+  startTime     String   @map("start_time") // e.g. "09:00"
+  endTime       String   @map("end_time") // e.g. "10:00"
+  roomNumber    String?  @map("room_number")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  institution Institution         @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  section     Section             @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subject     Subject             @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  faculty     User                @relation("FacultyTimetableSlots", fields: [facultyId], references: [id], onDelete: Cascade)
+  period      Period?             @relation(fields: [periodId], references: [id], onDelete: SetNull)
+  overrides   TimetableOverride[]
+
+  @@unique([institutionId, sectionId, dayOfWeek, periodNumber])
+  @@index([institutionId])
+  @@index([sectionId])
+  @@index([subjectId])
+  @@index([facultyId])
+  @@index([periodId])
+  @@map("timetable_slots")
+}
+
+model Period {
+  id            String   @id @map("_id") @default(uuid())
+  institutionId String   @map("institution_id")
+  number        Int
+  name          String
+  startTime     String   @map("start_time")
+  endTime       String   @map("end_time")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  institution    Institution     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  timetableSlots TimetableSlot[]
+
+  @@unique([institutionId, number])
+  @@index([institutionId])
+  @@map("periods")
+}
+
+model AcademicCalendarEvent {
+  id            String            @id @map("_id") @default(uuid())
+  institutionId String            @map("institution_id")
+  sectionId     String?           @map("section_id")
+  type          CalendarEventType
+  title         String
+  description   String?
+  startDate     DateTime          @map("start_date")
+  endDate       DateTime          @map("end_date")
+  createdById   String            @map("created_by_id")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  section     Section?    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  createdBy   User        @relation("CalendarEventCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([institutionId, startDate, endDate])
+  @@index([sectionId])
+  @@map("academic_calendar_events")
+}
+
+model TimetableOverride {
+  id                  String                @id @map("_id") @default(uuid())
+  institutionId       String                @map("institution_id")
+  timetableSlotId     String                @map("timetable_slot_id")
+  date                DateTime             
+  type                TimetableOverrideType
+  substituteFacultyId String?               @map("substitute_faculty_id")
+  substituteRoom      String?               @map("substitute_room")
+  note                String?
+  createdById         String                @map("created_by_id")
+  createdAt           DateTime              @default(now()) @map("created_at")
+
+  institution       Institution   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  timetableSlot     TimetableSlot @relation(fields: [timetableSlotId], references: [id], onDelete: Cascade)
+  substituteFaculty User?         @relation("SubstituteFaculty", fields: [substituteFacultyId], references: [id], onDelete: SetNull)
+  createdBy         User          @relation("TimetableOverrideCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@unique([institutionId, timetableSlotId, date])
+  @@index([institutionId, date])
+  @@index([substituteFacultyId])
+  @@map("timetable_overrides")
+}

@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: mongodb://localhost:27017/edusphere?replicaSet=rs0
+      DATABASE_URL_TEST: mongodb://localhost:27017/edusphere_test?replicaSet=rs0
+      NODE_ENV: test
+      JWT_ACCESS_SECRET: ci-only-access-secret-at-least-32-characters
+      JWT_REFRESH_SECRET: ci-only-refresh-secret-at-least-32-characters
+      EMAIL_MODE: log
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
+      - name: Start MongoDB replica set
+        run: |
+          docker run -d --name edusphere-mongo -p 27017:27017 mongo:8.2 mongod --replSet rs0 --bind_ip_all
+          for i in {1..30}; do
+            docker exec edusphere-mongo mongosh --quiet --eval 'db.adminCommand({ping:1}).ok' | grep -q 1 && break
+            sleep 1
+          done
+          docker exec edusphere-mongo mongosh --quiet --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]})'
+          for i in {1..30}; do
+            docker exec edusphere-mongo mongosh --quiet --eval 'db.hello().isWritablePrimary' | grep -q true && exit 0
+            sleep 1
+          done
+          exit 1
+      - name: Install server dependencies
+        working-directory: server
+        run: npm ci
+      - name: Install client dependencies
+        working-directory: client
+        run: npm ci
+      - name: Generate Prisma Client
+        working-directory: server
+        run: npm run prisma:generate
+      - name: Create MongoDB collections and indexes
+        working-directory: server
+        run: npm run prisma:push
+      - name: Lint server and client
+        run: |
+          cd server && npm run lint
+          cd ../client && npm run lint
+      - name: Type check server and client
+        run: |
+          cd server && npm run typecheck
+          cd ../client && npm run typecheck
+      - name: Run server unit tests
+        working-directory: server
+        run: npm run test:unit
+      - name: Run server integration tests
+        working-directory: server
+        run: npm test
+      - name: Build server and client
+        run: |
+          cd server && npm run build
+          cd ../client && npm run build

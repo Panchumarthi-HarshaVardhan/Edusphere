@@ -1,0 +1,60 @@
+services:
+  mongo:
+    image: mongo:8.2
+    restart: unless-stopped
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27018:27017"
+    volumes:
+      - edusphere_mongo_data:/data/db
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          mongosh --quiet --eval
+          'try { rs.status().ok } catch (e) { rs.initiate({_id:"rs0",members:[{_id:0,host:"mongo:27017"}]}).ok }'
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./server/.env
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      DATABASE_URL: mongodb://mongo:27017/edusphere?replicaSet=rs0
+      EMAIL_MODE: ${EMAIL_MODE:-log}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://localhost:5173}
+    command: sh -c "npm run prisma:push && npm start"
+    ports:
+      - "5000:5000"
+    volumes:
+      - edusphere_uploads:/app/uploads
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      server:
+        condition: service_healthy
+
+volumes:
+  edusphere_mongo_data:
+  edusphere_uploads:

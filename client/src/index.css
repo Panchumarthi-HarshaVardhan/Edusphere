@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.theme-dark, .theme-dark *));
+
+@theme {
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-accent: #0891b2;
+  --font-sans: "DM Sans", sans-serif;
+  --font-display: "Inter Variable", "Inter", sans-serif;
+}
+
+body { font-family: "DM Sans", sans-serif; }
+.font-display { font-family: "Inter Variable", "Inter", sans-serif; }
+.landing-glow { background: radial-gradient(ellipse at 79% 46%, rgba(99,102,241,.12), transparent 40%), radial-gradient(ellipse at 18% 12%, rgba(8,145,178,.07), transparent 34%); }
+.demo-input { display: block; width: 100%; min-height: 2.75rem; border: 1px solid #cbd5e1; border-radius: .75rem; background: #fff; padding: .65rem .8rem; color: #0f172a; font: inherit; font-size: .8125rem; outline: none; transition: border-color .15s, box-shadow .15s; }
+.demo-input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.16); }
+.demo-input::placeholder { color: #64748b; }
+html:not(.theme-light) .demo-input { border-color: #334155; background: #0f172a; color: #f8fafc; }
+html:not(.theme-light) .demo-input::placeholder { color: #94a3b8; }
+.portal-card, .feature-card { animation: landing-enter .5s both; }
+@keyframes landing-enter { from { opacity: 0; translate: 0 10px; } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+.landing-page {
+  background-image: radial-gradient(ellipse at 74% 34%, rgba(79, 70, 229, .14), transparent 37%),
+    radial-gradient(ellipse at 22% 18%, rgba(14, 165, 233, .08), transparent 32%);
+}
+.landing-gradient-text {
+  background: linear-gradient(105deg, #c4b5fd 12%, #818cf8 48%, #67e8f9 94%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.landing-scene { perspective: 1250px; isolation: isolate; }
+.scene-grid {
+  position: absolute; inset: 12% 0 0 2%; z-index: -2; opacity: .27;
+  background-image: linear-gradient(rgba(148,163,184,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.15) 1px, transparent 1px);
+  background-size: 36px 36px; mask-image: radial-gradient(ellipse, black 8%, transparent 70%);
+  transform: rotateX(62deg) rotateZ(-20deg) scale(1.1);
+}
+.scene-platform {
+  position: absolute; width: 74%; height: 32%; left: 13%; bottom: 4%; z-index: -1;
+  border: 1px solid rgba(165,180,252,.24); border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(99,102,241,.2), rgba(15,23,42,.04) 66%, transparent 70%);
+  box-shadow: 0 34px 80px rgba(79,70,229,.2), inset 0 0 36px rgba(129,140,248,.09);
+  transform: rotateX(65deg) rotateZ(-12deg);
+}
+.scene-orb { position: absolute; border-radius: 999px; filter: blur(1px); pointer-events:none; }
+.scene-orb-one { width: 150px; height: 150px; top: 8%; right: 11%; background: radial-gradient(circle at 32% 25%, rgba(165,243,252,.7), rgba(99,102,241,.2) 38%, transparent 72%); box-shadow: 0 0 70px rgba(129,140,248,.24); animation: orb-drift 7s ease-in-out infinite; }
+.scene-orb-two { width: 85px; height: 85px; left: 4%; bottom: 22%; background: radial-gradient(circle at 35% 25%, rgba(196,181,253,.5), rgba(79,70,229,.1) 65%, transparent 76%); animation: orb-drift 8s ease-in-out -2s infinite; }
+.scene-panel { position: absolute; transform-style: preserve-3d; }
+.scene-panel-main { width: 76%; right: 5%; top: 15%; z-index: 2; transform: rotateY(-13deg) rotateX(7deg) rotateZ(1deg); animation: panel-hover 7s ease-in-out infinite; }
+.scene-panel-back { width: 45%; left: 0; top: 21%; z-index: 1; opacity: .92; transform: rotateY(18deg) rotateX(5deg) rotateZ(-8deg) translateZ(-90px); animation: back-hover 8s ease-in-out infinite; }
+.scene-float-card { position: absolute; left: 1%; bottom: 20%; z-index: 4; transform: rotateY(12deg) rotateZ(-4deg); animation: card-hover 6s ease-in-out infinite; }
+.scene-float-chip { position: absolute; right: 1%; bottom: 9%; z-index: 4; box-shadow: 0 12px 32px rgba(8,145,178,.12); animation: card-hover 7s ease-in-out -1s infinite; }
+.landing-brand-icon { box-shadow: 0 10px 35px rgba(99,102,241,.28); }
+.landing-service-card { animation: service-rise .6s both; }
+@keyframes panel-hover { 0%,100% { transform: rotateY(-13deg) rotateX(7deg) rotateZ(1deg) translateY(0); } 50% { transform: rotateY(-10deg) rotateX(5deg) rotateZ(1deg) translateY(-10px); } }
+@keyframes back-hover { 0%,100% { transform: rotateY(18deg) rotateX(5deg) rotateZ(-8deg) translateY(0) translateZ(-90px); } 50% { transform: rotateY(15deg) rotateX(7deg) rotateZ(-8deg) translateY(-8px) translateZ(-90px); } }
+@keyframes card-hover { 0%,100% { translate: 0 0; } 50% { translate: 0 -9px; } }
+@keyframes orb-drift { 0%,100% { translate: 0 0; } 50% { translate: 8px -12px; } }
+@keyframes service-rise { from { opacity: 0; translate: 0 10px; } to { opacity: 1; translate: 0 0; } }
+@media (max-width: 640px) {
+  .scene-panel-main { width: 82%; right: 1%; top: 16%; }
+  .scene-panel-back { width: 46%; left: -2%; top: 28%; }
+  .scene-float-card { bottom: 14%; left: -1%; }
+  .scene-float-chip { right: 0; bottom: 6%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}
+
+html.theme-light { color-scheme: light; }
+html.theme-light body { background: #f1f5f9; color: #0f172a; }
+html.theme-light .portal-shell { background: #f1f5f9; color: #0f172a; }
+html.theme-light .portal-navbar { background-color: rgba(248,250,252,.92); border-color: #cbd5e1; }
+html.theme-light .portal-shell .bg-slate-950 { background-color: #f1f5f9; }
+html.theme-light .portal-shell .bg-slate-900 { background-color: #ffffff; }
+html.theme-light .portal-shell .bg-slate-800 { background-color: #e2e8f0; }
+html.theme-light .portal-shell [class~="bg-slate-950/60"], html.theme-light .portal-shell [class~="bg-slate-950/70"], html.theme-light .portal-shell [class~="bg-slate-950/80"], html.theme-light .portal-shell [class~="bg-slate-950/85"], html.theme-light .portal-shell [class~="bg-slate-950/90"], html.theme-light .portal-shell [class~="bg-slate-950/95"] { background-color: rgba(241,245,249,.96); }
+html.theme-light .portal-shell [class~="bg-slate-900/35"], html.theme-light .portal-shell [class~="bg-slate-900/40"], html.theme-light .portal-shell [class~="bg-slate-900/50"], html.theme-light .portal-shell [class~="bg-slate-900/60"], html.theme-light .portal-shell [class~="bg-slate-900/75"], html.theme-light .portal-shell [class~="bg-slate-900/80"], html.theme-light .portal-shell [class~="bg-slate-900/90"] { background-color: rgba(255,255,255,.94); }
+html.theme-light .portal-shell [class~="bg-slate-800/25"], html.theme-light .portal-shell [class~="bg-slate-800/30"], html.theme-light .portal-shell [class~="bg-slate-800/40"], html.theme-light .portal-shell [class~="bg-slate-800/50"], html.theme-light .portal-shell [class~="bg-slate-800/60"], html.theme-light .portal-shell [class~="bg-slate-800/70"], html.theme-light .portal-shell [class~="bg-slate-800/80"] { background-color: rgba(226,232,240,.82); }
+html.theme-light .portal-shell [class~="hover:bg-slate-800"]:hover, html.theme-light .portal-shell [class~="hover:bg-slate-900"]:hover { background-color: #e2e8f0; }
+html.theme-light .portal-shell .text-white { color: #0f172a; }
+html.theme-light .portal-shell .text-slate-100, html.theme-light .portal-shell .text-slate-200 { color: #1e293b; }
+html.theme-light .portal-shell .text-slate-300 { color: #334155; }
+html.theme-light .portal-shell .text-slate-400 { color: #475569; }
+html.theme-light .portal-shell .text-slate-500 { color: #64748b; }
+html.theme-light .portal-shell .text-slate-600, html.theme-light .portal-shell .text-slate-700 { color: #475569; }
+html.theme-light .portal-shell .bg-indigo-500.text-white, html.theme-light .portal-shell .bg-indigo-600.text-white, html.theme-light .portal-shell .bg-indigo-700.text-white, html.theme-light .portal-shell .bg-emerald-600.text-white, html.theme-light .portal-shell .bg-rose-600.text-white, html.theme-light .portal-shell .bg-red-600.text-white { color: #fff; }
+html.theme-light .portal-shell .doubts-portal-banner .text-white { color: #f8fafc; }
+html.theme-light .portal-shell .doubts-portal-banner .text-slate-300, html.theme-light .portal-shell .doubts-portal-banner .text-slate-400 { color: #cbd5e1; }
+html.theme-light .portal-shell .border-slate-800, html.theme-light .portal-shell .border-slate-700, html.theme-light .portal-shell .border-slate-600 { border-color: #cbd5e1; }
+html.theme-light .portal-shell [class*="border-white/"] { border-color: rgba(100,116,139,.24); }
+html.theme-light .portal-shell [class*="bg-white/"] { background-color: rgba(226,232,240,.55); }
+html.theme-light .portal-shell input, html.theme-light .portal-shell select, html.theme-light .portal-shell textarea { color: #0f172a; }
+html.theme-light .portal-shell input::placeholder, html.theme-light .portal-shell textarea::placeholder { color: #64748b; }
+html.theme-light .admin-portal .text-indigo-300, html.theme-light .admin-portal .text-indigo-400 { color: #4338ca; }
+html.theme-light .admin-portal .text-emerald-300, html.theme-light .admin-portal .text-emerald-400 { color: #047857; }
+html.theme-light .admin-portal .text-amber-300, html.theme-light .admin-portal .text-amber-400 { color: #a16207; }
+html.theme-light .admin-portal .text-rose-300, html.theme-light .admin-portal .text-rose-400 { color: #be123c; }
+html.theme-light .landing-page { background-color: #fff; color: #0f172a; }
