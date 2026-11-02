@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { GraduationCap, Lock, Mail, Building, AlertCircle, ArrowRight } from 'lucide-react';
+import { GraduationCap, Lock, Mail, Building, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const [institutionCode, setInstitutionCode] = useState('');
@@ -49,6 +49,16 @@ export const LoginPage: React.FC = () => {
       <div className="pointer-events-none absolute -bottom-40 -right-28 size-[30rem] rounded-full bg-cyan-100/70 blur-3xl" />
 
       <div className="relative z-10 w-full max-w-md rounded-3xl border border-slate-200 bg-white p-7 shadow-xl shadow-slate-900/5 sm:p-9">
+        {/* Back to landing page */}
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="mb-5 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-indigo-600"
+        >
+          <ArrowLeft size={16} />
+          <span>Back to Home</span>
+        </button>
+
         <div className="flex flex-col items-center mb-8">
           <div className="mb-4 flex size-14 items-center justify-center rounded-2xl border border-indigo-100 bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-900/5">
             <GraduationCap className="w-8 h-8" />
