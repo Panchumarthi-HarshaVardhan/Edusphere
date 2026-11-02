@@ -9,6 +9,7 @@ describe('EduSphere marketing landing page', () => {
 
     expect(markup).toContain('One platform.');
     expect(markup).toContain('Every academic need.');
+    expect(markup).toContain('Explore demo');
     expect(markup).toContain('Request a demo');
     expect(markup).toContain('Log in');
     expect(markup).not.toContain('Sign up');

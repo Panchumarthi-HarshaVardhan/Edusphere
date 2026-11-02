@@ -23,7 +23,7 @@ function DashboardPreview() {
   </div>;
 }
 
-export function Hero() {
+export function Hero({ onOpenDemo }: { onOpenDemo?: () => void }) {
   return <section className="relative overflow-hidden px-5 pb-20 pt-16 sm:px-8 sm:pb-24 sm:pt-20 lg:pb-28 lg:pt-24">
     <div className="landing-glow pointer-events-none absolute inset-0 -z-10" />
     <div className="mx-auto grid max-w-7xl items-center gap-16 lg:grid-cols-[.92fr_1.08fr] lg:gap-10">
@@ -32,10 +32,10 @@ export function Hero() {
         <h1 className="font-display text-5xl font-bold leading-[1.04] tracking-[-.045em] text-slate-950 sm:text-6xl lg:text-[3.8rem] 2xl:text-[4.35rem] dark:text-white">One platform.<br /><span className="text-indigo-700 dark:text-indigo-300">Every academic need.</span></h1>
         <p className="mt-6 max-w-xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8 dark:text-slate-300">Bring teaching, learning resources, attendance, marks, and campus communication into one connected academic workspace.</p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <a href="#request-demo" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:-translate-y-0.5 hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-700">Request a demo <ArrowRight size={17} /></a>
+          <button type="button" onClick={onOpenDemo} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:-translate-y-0.5 hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-700">Explore demo <ArrowRight size={17} /></button>
           <a href="#portals" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 transition hover:border-indigo-300 hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-700 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10">Explore the portals <ArrowDown size={16} /></a>
         </div>
-        <p className="mt-5 text-xs text-slate-500 dark:text-slate-400">Accounts are created by your institution. No public sign-up.</p>
+        <p className="mt-5 text-xs text-slate-500 dark:text-slate-400">Institutional setup? <a href="#request-demo" className="font-semibold text-indigo-600 underline hover:text-indigo-700 dark:text-indigo-400">Request a demo below ↓</a></p>
       </div>
       <DashboardPreview />
     </div>

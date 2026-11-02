@@ -4,13 +4,18 @@ import { prisma } from '../utils/prisma.js';
 
 const createAuthenticate = (allowPasswordResetOnly: boolean) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  let token: string | undefined;
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else if (typeof req.query.token === 'string' && req.query.token.trim()) {
+    token = req.query.token.trim();
+  }
+
+  if (!token) {
     res.status(401).json({ message: 'Authentication required. No token provided.' });
     return;
   }
-
-  const token = authHeader.split(' ')[1];
   let decoded: ReturnType<typeof verifyAccessToken>;
   try { decoded = verifyAccessToken(token); }
   catch (error: any) {

@@ -252,12 +252,15 @@ export const StudentPortal: React.FC = () => {
     try {
       const res = await api.get(`/materials/${m.id}/download-url`);
       const { downloadUrl, filename } = res.data;
+      const fileRes = await api.get(downloadUrl, { responseType: 'blob' });
+      const blobUrl = window.URL.createObjectURL(fileRes.data);
       const link = document.createElement('a');
-      link.href = downloadUrl;
+      link.href = blobUrl;
       link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Download forbidden or expired.');
     }

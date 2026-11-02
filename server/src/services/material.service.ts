@@ -611,7 +611,8 @@ export class MaterialService {
     materialId: string,
     userId: string,
     role: RoleType,
-    versionNumber?: number
+    versionNumber?: number,
+    token?: string
   ) {
     const material = await this.getMaterialById(institutionId, materialId, userId, role);
 
@@ -640,7 +641,7 @@ export class MaterialService {
       ? `${version.originalFilename}.pdf`
       : version.originalFilename;
 
-    const signedUrl = await StorageService.getSignedViewUrl(keyToPreview, filenameToPreview, 3600);
+    const signedUrl = await StorageService.getSignedViewUrl(keyToPreview, filenameToPreview, 3600, token);
 
     return {
       viewUrl: signedUrl,
@@ -661,7 +662,8 @@ export class MaterialService {
     userId: string,
     role: RoleType,
     versionNumber?: number,
-    req?: Request
+    req?: Request,
+    token?: string
   ) {
     const material = await this.getMaterialById(institutionId, materialId, userId, role);
 
@@ -703,7 +705,8 @@ export class MaterialService {
     const signedUrl = await StorageService.getSignedDownloadUrl(
       version.s3Key,
       version.originalFilename,
-      1800
+      1800,
+      token
     );
 
     return {

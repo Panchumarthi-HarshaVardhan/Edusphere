@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 // Strict rate limit for auth login and password attempts
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'test' ? 1000 : 20, // Keep integration fixtures below production throttles.
+  max: process.env.NODE_ENV === 'test' ? 1000 : (process.env.NODE_ENV === 'development' ? 500 : 20), // Keep integration fixtures and local development below production throttles.
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -14,7 +14,7 @@ export const authLimiter = rateLimit({
 // General API rate limiter
 export const apiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: process.env.NODE_ENV === 'test' ? 5000 : 120,
+  max: process.env.NODE_ENV === 'test' ? 5000 : (process.env.NODE_ENV === 'development' ? 2000 : 120),
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -23,7 +23,7 @@ export const apiLimiter = rateLimit({
 // installed after authentication on each upload endpoint.
 export const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  max: process.env.NODE_ENV === 'development' ? 200 : 30,
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many uploads from this IP. Please try again later.' },
@@ -31,7 +31,7 @@ export const uploadLimiter = rateLimit({
 
 export const demoRequestLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: Number(process.env.DEMO_REQUEST_MAX_PER_HOUR) || (process.env.NODE_ENV === 'test' ? 5 : 5),
+  max: Number(process.env.DEMO_REQUEST_MAX_PER_HOUR) || (process.env.NODE_ENV === 'test' ? 5 : (process.env.NODE_ENV === 'development' ? 100 : 5)),
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many demo requests. Please try again later.' },

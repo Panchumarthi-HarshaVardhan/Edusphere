@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AttendanceService } from '../services/attendance.service.js';
 import { AttendanceStatus, RoleType } from '@prisma/client';
+import { prisma } from '../utils/prisma.js';
 
 export class AttendanceController {
   static async createOrGetSession(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -80,14 +81,28 @@ export class AttendanceController {
     try {
       const institutionId = req.institutionId!;
       const studentId = req.user!.userId;
-      const { attendanceRecordId, requestedStatus, reason } = req.body;
+      let { attendanceRecordId, recordId, sessionId, requestedStatus, reason } = req.body;
+
+      let targetRecordId = attendanceRecordId || recordId;
+      if (!targetRecordId && sessionId) {
+        const found = await prisma.attendanceRecord.findFirst({
+          where: { institutionId, attendanceSessionId: sessionId, studentId },
+          select: { id: true },
+        });
+        if (found) targetRecordId = found.id;
+      }
+
+      if (!targetRecordId) {
+        res.status(400).json({ message: 'Valid attendance record ID or session ID is required.' });
+        return;
+      }
 
       const correction = await AttendanceService.requestCorrection(
         institutionId,
         studentId,
-        attendanceRecordId,
+        targetRecordId,
         requestedStatus as AttendanceStatus,
-        reason
+        reason || 'Correction requested by student'
       );
 
       res.status(201).json({ message: 'Correction request submitted', correction });
@@ -101,7 +116,8 @@ export class AttendanceController {
       const institutionId = req.institutionId!;
       const facultyId = req.user!.userId;
       const requestId = req.params.requestId;
-      const { decision, reviewRemarks } = req.body;
+      const decision = ((req.body.decision || req.body.status || 'APPROVED') as string).toUpperCase() as 'APPROVED' | 'REJECTED';
+      const reviewRemarks = req.body.reviewRemarks || req.body.facultyNote || req.body.remarks || '';
 
       const result = await AttendanceService.reviewCorrection(
         institutionId,

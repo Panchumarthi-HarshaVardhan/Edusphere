@@ -100,6 +100,19 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       return;
     }
 
+    if (scope === 'DEPARTMENT' && !targetIds.departmentId) {
+      setError('Please choose a target department for this scope.');
+      return;
+    }
+    if (scope === 'YEAR' && !targetIds.academicYearId) {
+      setError('Please choose a target academic year for this scope.');
+      return;
+    }
+    if (scope === 'SECTION' && !targetIds.sectionId) {
+      setError('Please choose a target section for this scope.');
+      return;
+    }
+
     if (showPoll) {
       if (!pollQuestion.trim()) {
         setError('Poll question is required.');
@@ -124,12 +137,12 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
     const payload: any = {
       section,
       scope,
-      ...(scope === 'DEPARTMENT' ? { departmentId: targetIds.departmentId } : {}),
-      ...(scope === 'YEAR' ? { academicYearId: targetIds.academicYearId } : {}),
-      ...(scope === 'SECTION' ? { sectionId: targetIds.sectionId } : {}),
+      ...(scope === 'DEPARTMENT' && targetIds.departmentId ? { departmentId: targetIds.departmentId } : {}),
+      ...(scope === 'YEAR' && targetIds.academicYearId ? { academicYearId: targetIds.academicYearId } : {}),
+      ...(scope === 'SECTION' && targetIds.sectionId ? { sectionId: targetIds.sectionId } : {}),
       title: title.trim() || undefined,
       content: content.trim(),
-      hashtags,
+      hashtags: hashtags.length > 0 ? hashtags : undefined,
       isVerifiedAnnouncement: canPostVerified ? isVerifiedAnnouncement : false,
     };
 

@@ -324,7 +324,7 @@ export class CommunityService {
         voteCount: 0,
       }));
 
-      await prisma.postPoll.create({
+      const poll = await prisma.postPoll.create({
         data: {
           institutionId,
           postId: post.id,
@@ -333,6 +333,7 @@ export class CommunityService {
           expiresAt: data.poll.expiresAt ? new Date(data.poll.expiresAt) : null,
         },
       });
+      (post as any).poll = poll;
     }
 
     // If verified announcement, broadcast notification to target scope users
@@ -887,8 +888,8 @@ export class CommunityService {
   }
 
   static async toggleDoubtVote(institutionId: string, userId: string, doubtId: string) {
-    const existing = await prisma.doubtVote.findUnique({
-      where: { userId_doubtId: { userId, doubtId } },
+    const existing = await prisma.doubtVote.findFirst({
+      where: { userId, doubtId },
     });
 
     if (existing) {
@@ -915,8 +916,8 @@ export class CommunityService {
   }
 
   static async toggleReplyVote(institutionId: string, userId: string, replyId: string) {
-    const existing = await prisma.doubtVote.findUnique({
-      where: { userId_replyId: { userId, replyId } },
+    const existing = await prisma.doubtVote.findFirst({
+      where: { userId, replyId },
     });
 
     if (existing) {

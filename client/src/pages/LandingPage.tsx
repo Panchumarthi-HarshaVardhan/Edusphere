@@ -1,10 +1,11 @@
-import React, { lazy } from 'react';
+import React, { lazy, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Hero } from './landing/Hero';
 import { SiteHeader } from './landing/SiteHeader';
 import { LazySection } from './landing/LazySection';
 import { SiteFooter } from './landing/SiteFooter';
+import { ExploreDemoModal } from '../components/ExploreDemoModal';
 
 const TrustProblem = lazy(() => import('./landing/TrustProblem').then((module) => ({ default: module.TrustProblem })));
 const PortalsSection = lazy(() => import('./landing/PortalsSection').then((module) => ({ default: module.PortalsSection })));
@@ -23,10 +24,12 @@ function destinationForRole(role: string): string {
 }
 
 export function LandingPageMarketing() {
+  const [demoModalOpen, setDemoModalOpen] = useState(false);
+
   return <div className="landing-page min-h-screen bg-white font-sans text-slate-900 antialiased dark:bg-slate-950 dark:text-white">
-    <SiteHeader />
+    <SiteHeader onOpenDemo={() => setDemoModalOpen(true)} />
     <main>
-      <Hero />
+      <Hero onOpenDemo={() => setDemoModalOpen(true)} />
       <LazySection minHeight="18rem"><TrustProblem /></LazySection>
       <LazySection id="portals" minHeight="42rem"><PortalsSection /></LazySection>
       <LazySection id="features" minHeight="34rem"><FeaturesGrid /></LazySection>
@@ -37,6 +40,7 @@ export function LandingPageMarketing() {
       <LazySection id="request-demo" minHeight="38rem"><DemoRequestSection /></LazySection>
     </main>
     <SiteFooter />
+    {demoModalOpen && <ExploreDemoModal isOpen={demoModalOpen} onClose={() => setDemoModalOpen(false)} />}
   </div>;
 }
 

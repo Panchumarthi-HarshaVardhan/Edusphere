@@ -94,7 +94,8 @@ export class StorageService {
   static async getSignedViewUrl(
     s3Key: string,
     originalFilename: string,
-    expiresInSeconds = 3600
+    expiresInSeconds = 3600,
+    token?: string
   ): Promise<string> {
     if (this.isS3Enabled) {
       const client = this.getClient();
@@ -107,7 +108,8 @@ export class StorageService {
     }
 
     // Local signed URL endpoint
-    return `/api/materials/stream/${encodeURIComponent(s3Key)}?inline=true`;
+    const tokenQuery = token ? `&token=${encodeURIComponent(token)}` : '';
+    return `/api/materials/stream/${encodeURIComponent(s3Key)}?inline=true${tokenQuery}`;
   }
 
   /**
@@ -116,7 +118,8 @@ export class StorageService {
   static async getSignedDownloadUrl(
     s3Key: string,
     originalFilename: string,
-    expiresInSeconds = 1800
+    expiresInSeconds = 1800,
+    token?: string
   ): Promise<string> {
     if (this.isS3Enabled) {
       const client = this.getClient();
@@ -129,7 +132,8 @@ export class StorageService {
     }
 
     // Local signed URL endpoint
-    return `/api/materials/stream/${encodeURIComponent(s3Key)}?download=true`;
+    const tokenQuery = token ? `&token=${encodeURIComponent(token)}` : '';
+    return `/api/materials/stream/${encodeURIComponent(s3Key)}?download=true${tokenQuery}`;
   }
 
   /**

@@ -1054,8 +1054,8 @@ model DoubtVote {
   doubt       Doubt?      @relation(fields: [doubtId], references: [id], onDelete: Cascade)
   reply       DoubtReply? @relation(fields: [replyId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, doubtId])
-  @@unique([userId, replyId])
+  @@index([userId, doubtId])
+  @@index([userId, replyId])
   @@index([institutionId])
   @@index([userId])
   @@index([doubtId])

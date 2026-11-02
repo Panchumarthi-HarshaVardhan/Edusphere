@@ -144,13 +144,17 @@ export class MaterialController {
       const role = req.user!.role;
       const materialId = req.params.materialId;
       const versionNumber = req.query.version ? parseInt(req.query.version as string, 10) : undefined;
+      const token = req.headers.authorization?.startsWith('Bearer ')
+        ? req.headers.authorization.split(' ')[1]
+        : (typeof req.query.token === 'string' ? req.query.token : undefined);
 
       const result = await MaterialService.getViewUrl(
         institutionId,
         materialId,
         userId,
         role,
-        versionNumber
+        versionNumber,
+        token
       );
 
       res.status(200).json(result);
@@ -166,6 +170,9 @@ export class MaterialController {
       const role = req.user!.role;
       const materialId = req.params.materialId;
       const versionNumber = req.query.version ? parseInt(req.query.version as string, 10) : undefined;
+      const token = req.headers.authorization?.startsWith('Bearer ')
+        ? req.headers.authorization.split(' ')[1]
+        : (typeof req.query.token === 'string' ? req.query.token : undefined);
 
       const result = await MaterialService.getDownloadUrl(
         institutionId,
@@ -173,7 +180,8 @@ export class MaterialController {
         userId,
         role,
         versionNumber,
-        req
+        req,
+        token
       );
 
       res.status(200).json(result);

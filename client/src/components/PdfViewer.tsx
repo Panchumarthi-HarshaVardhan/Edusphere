@@ -11,7 +11,7 @@ import {
   FileText,
   Lock,
 } from 'lucide-react';
-import api from '../api/client';
+import api, { getAccessToken } from '../api/client';
 
 // Configure pdfjs worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
@@ -51,10 +51,12 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ materialId, title, onClose
         setAllowDownload(Boolean(canDownload));
         setIsConverted(Boolean(converted));
 
-        // Load PDF via PDF.js
+        // Load PDF via PDF.js with bearer token and credentials
+        const token = getAccessToken();
         const loadingTask = pdfjsLib.getDocument({
           url: viewUrl,
           withCredentials: true,
+          httpHeaders: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
 
         const doc = await loadingTask.promise;
@@ -131,13 +133,16 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ materialId, title, onClose
       const res = await api.get(`/materials/${materialId}/download-url`);
       const { downloadUrl, filename } = res.data;
 
-      // Trigger secure download
+      // Trigger secure download via blob to ensure headers and auth work everywhere
+      const fileRes = await api.get(downloadUrl, { responseType: 'blob' });
+      const blobUrl = window.URL.createObjectURL(fileRes.data);
       const link = document.createElement('a');
-      link.href = downloadUrl;
+      link.href = blobUrl;
       link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Download forbidden or expired.');
     } finally {
