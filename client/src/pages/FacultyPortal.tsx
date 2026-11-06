@@ -221,6 +221,24 @@ export const FacultyPortal: React.FC = () => {
     }
   };
 
+  const handleDirectDownload = async (m: StudyMaterial) => {
+    try {
+      const res = await api.get(`/materials/${m.id}/download-url`);
+      const { downloadUrl, filename } = res.data;
+      const fileRes = await api.get(downloadUrl, { responseType: 'blob' });
+      const blobUrl = window.URL.createObjectURL(fileRes.data);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename || `${m.title}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Download forbidden or expired.');
+    }
+  };
+
   return (
     <PortalLayout
       portalName="Faculty Workstation"
@@ -1015,6 +1033,15 @@ export const FacultyPortal: React.FC = () => {
                       className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition cursor-pointer"
                     >
                       <Eye className="w-3.5 h-3.5" />
+                    </button>
+
+                    {/* Download file */}
+                    <button
+                      onClick={() => handleDirectDownload(m)}
+                      title="Download file"
+                      className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
                     </button>
 
                     {/* Replace Version trigger */}

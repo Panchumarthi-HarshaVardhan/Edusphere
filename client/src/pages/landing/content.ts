@@ -25,12 +25,12 @@ export const portalContent = [
 ];
 
 export const featureContent = [
-  { icon: PencilLine, title: 'Digital classroom canvas', description: 'Teach with a handwriting canvas and save pages as classroom lessons.' },
-  { icon: BookOpen, title: 'Unified learning repository', description: 'Organize presentations, notes, and previous year papers by subject.' },
-  { icon: ClipboardCheck, title: 'Attendance and marks', description: 'Record attendance by session and make academic progress easier to follow.' },
-  { icon: Users, title: 'Campus community', description: 'Keep conversations scoped to the institution, department, year, and section.' },
-  { icon: MessageCircle, title: 'Anonymous doubts', description: 'Let students ask subject-specific questions without revealing their identity to peers.' },
-  { icon: Bell, title: 'Alerts and verified announcements', description: 'Help students and faculty keep up with relevant academic notifications and verified campus updates.' },
+  { id: 'materials', icon: BookOpen, title: 'Unified learning repository', description: 'Organize presentations, notes, and previous year papers by subject.' },
+  { id: 'canvas', icon: PencilLine, title: 'Digital classroom canvas', description: 'Teach with a handwriting canvas and save pages as classroom lessons.' },
+  { id: 'attendance', icon: ClipboardCheck, title: 'Attendance and marks', description: 'Record attendance by session and make academic progress easier to follow.' },
+  { id: 'community', icon: Users, title: 'Campus community', description: 'Keep conversations scoped to the institution, department, year, and section.' },
+  { id: 'doubts', icon: MessageCircle, title: 'Anonymous doubts', description: 'Let students ask subject-specific questions without revealing their identity to peers.' },
+  { id: 'announcements', icon: Bell, title: 'Alerts and verified announcements', description: 'Help students and faculty keep up with relevant academic notifications and verified campus updates.' },
 ];
 
 export const workflowSteps = [

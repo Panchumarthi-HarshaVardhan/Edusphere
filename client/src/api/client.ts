@@ -21,7 +21,32 @@ export const setAccessToken = (token: string | null) => {
 
 export const getAccessToken = () => accessToken;
 
-// Request Interceptor: Attach Bearer token
+/**
+ * Resolves a download or view URL returned by the backend.
+ * If url is already absolute (http://, https://, blob:), returns it.
+ * Otherwise, combines with the API host / base URL so it works in both
+ * local development and production (e.g. Vercel -> Render).
+ */
+export const resolveFileUrl = (url: string, token?: string | null): string => {
+  if (!url) return '';
+  let fullUrl = url;
+  if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('blob:')) {
+    const rawBase = import.meta.env.VITE_API_URL || '/api';
+    const base = rawBase.replace(/\/+$/, '');
+    // If base ends with '/api' and url starts with '/api/', remove duplicate '/api'
+    const cleanPath = url.startsWith('/api/') ? url.slice(4) : (url.startsWith('/') ? url : `/${url}`);
+    fullUrl = `${base}${cleanPath}`;
+  }
+
+  const effectiveToken = token || accessToken;
+  if (effectiveToken && !fullUrl.includes('token=')) {
+    const separator = fullUrl.includes('?') ? '&' : '?';
+    fullUrl = `${fullUrl}${separator}token=${encodeURIComponent(effectiveToken)}`;
+  }
+  return fullUrl;
+};
+
+// Request Interceptor: Attach Bearer token and normalize URLs
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (accessToken && config.headers) {
@@ -29,6 +54,10 @@ api.interceptors.request.use(
     }
     if (config.data instanceof FormData && config.headers) {
       delete config.headers['Content-Type'];
+    }
+    // Prevent duplicate "/api/api/" when baseURL already ends with "/api"
+    if (config.url && config.url.startsWith('/api/')) {
+      config.url = config.url.slice(4);
     }
     return config;
   },

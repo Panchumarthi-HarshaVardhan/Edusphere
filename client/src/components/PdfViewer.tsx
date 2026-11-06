@@ -11,7 +11,7 @@ import {
   FileText,
   Lock,
 } from 'lucide-react';
-import api, { getAccessToken } from '../api/client';
+import api, { getAccessToken, resolveFileUrl } from '../api/client';
 
 // Configure pdfjs worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
@@ -53,8 +53,9 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ materialId, title, onClose
 
         // Load PDF via PDF.js with bearer token and credentials
         const token = getAccessToken();
+        const resolvedUrl = resolveFileUrl(viewUrl, token);
         const loadingTask = pdfjsLib.getDocument({
-          url: viewUrl,
+          url: resolvedUrl,
           withCredentials: true,
           httpHeaders: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
@@ -138,7 +139,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ materialId, title, onClose
       const blobUrl = window.URL.createObjectURL(fileRes.data);
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = filename;
+      link.download = filename || `${title}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

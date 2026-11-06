@@ -256,7 +256,7 @@ export const StudentPortal: React.FC = () => {
       const blobUrl = window.URL.createObjectURL(fileRes.data);
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = filename;
+      link.download = filename || `${m.title}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
