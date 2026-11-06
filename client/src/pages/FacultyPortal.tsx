@@ -20,6 +20,8 @@ import {
   BarChart3,
   Pin,
   MessageSquare,
+  UserRound,
+  Settings2,
 } from 'lucide-react';
 
 import api from '../api/client';
@@ -83,6 +85,54 @@ export const FacultyPortal: React.FC = () => {
   );
   const [activeCanvasSession, setActiveCanvasSession] = useState<any | null>(null);
   const [scheduleActionError, setScheduleActionError] = useState<string | null>(null);
+
+  const pageHeader: Record<typeof activeTab, { title: string; description: string; icon: React.ComponentType<{ className?: string }> }> = {
+    dashboard: {
+      title: 'Faculty Command Center',
+      description: 'Your teaching schedule, pending roll-calls, and student doubt alerts.',
+      icon: LayoutDashboard,
+    },
+    materials: {
+      title: 'Study Materials Hub',
+      description: 'Upload course notes, syllabi, and question papers with auto-versioning and student engagement tracking.',
+      icon: FolderGit2,
+    },
+    canvas: {
+      title: 'Digital Classroom Sessions',
+      description: 'Teach with an interactive whiteboard canvas and save board notes directly as student lessons.',
+      icon: Presentation,
+    },
+    attendance: {
+      title: 'Session Attendance',
+      description: 'Conduct attendance roll-calls for each session and track student attendance percentages.',
+      icon: CalendarCheck,
+    },
+    marks: {
+      title: 'Gradebook & Assessment Entry',
+      description: 'Record marks, publish assessment results, and manage student grades.',
+      icon: FileSpreadsheet,
+    },
+    community: {
+      title: 'Campus Community',
+      description: 'Post verified announcements, create polls, and discuss academic topics with students.',
+      icon: MessageSquare,
+    },
+    doubts: {
+      title: 'Doubts & Solutions',
+      description: 'Address student doubts, provide verified answers, and support peer learning.',
+      icon: HelpCircle,
+    },
+    profile: {
+      title: 'My Profile',
+      description: 'View and update your faculty profile details.',
+      icon: UserRound,
+    },
+    settings: {
+      title: 'Appearance Settings',
+      description: 'Choose your preferred appearance for EduSphere.',
+      icon: Settings2,
+    },
+  };
 
   const sidebarItems = [
     {
@@ -251,115 +301,40 @@ export const FacultyPortal: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-6">
           <div>
             <h1 className="text-xl font-bold text-white flex items-center space-x-2.5">
-              <FolderGit2 className="w-6 h-6 text-indigo-400" />
-              <span>Study Materials Hub</span>
+              {React.createElement(pageHeader[activeTab].icon, { className: 'w-6 h-6 text-indigo-400' })}
+              <span>{pageHeader[activeTab].title}</span>
             </h1>
             <p className="text-slate-400 text-xs mt-1">
-              Upload course notes, syllabi, and question papers. Replace files with auto-versioning and track student engagement.
+              {pageHeader[activeTab].description}
             </p>
           </div>
 
-          <button
-            onClick={() => setIsUploadOpen(true)}
-            disabled={!canManageAssignments}
-            className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/20 cursor-pointer shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Upload New Material</span>
-          </button>
+          {activeTab === 'materials' && (
+            <button
+              onClick={() => setIsUploadOpen(true)}
+              disabled={!canManageAssignments}
+              className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/20 cursor-pointer shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Upload New Material</span>
+            </button>
+          )}
+
+          {activeTab === 'canvas' && (
+            <button
+              onClick={() => setIsCreateSessionOpen(true)}
+              disabled={!canManageAssignments}
+              className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/20 cursor-pointer shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Canvas Session</span>
+            </button>
+          )}
         </div>
 
         {assignmentsLoading && <div role="status" className="rounded-xl border border-slate-700 bg-slate-900 p-4 text-sm text-slate-300">Loading your assigned subjects and sections…</div>}
         {assignmentsError && <div role="alert" className="flex items-center justify-between gap-3 rounded-xl border border-red-800 bg-red-950/40 p-4 text-sm text-red-200"><span>{assignmentsError}</span><button onClick={fetchDashboard} className="rounded-lg bg-red-900 px-3 py-1.5 text-xs font-semibold">Retry</button></div>}
         {!assignmentsLoading && !assignmentsError && assignments.length === 0 && <div role="status" className="rounded-xl border border-amber-800 bg-amber-950/30 p-4 text-sm text-amber-100">No subject and section assignments are linked to your faculty account yet. Ask an administrator to assign your classes before creating materials, sessions, attendance, or assessments.</div>}
-
-        {/* View Switcher Tabs */}
-        <div className="flex border-b border-slate-800 space-x-6 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`pb-3 text-sm font-semibold transition cursor-pointer border-b-2 flex items-center space-x-2 shrink-0 ${
-              activeTab === 'dashboard'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <LayoutDashboard className="w-4 h-4" />
-            <span>Faculty Overview</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('materials')}
-            className={`pb-3 text-sm font-semibold transition cursor-pointer border-b-2 shrink-0 ${
-              activeTab === 'materials'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Study Materials (S3)
-          </button>
-          <button
-            onClick={() => setActiveTab('canvas')}
-            className={`pb-3 text-sm font-semibold transition cursor-pointer border-b-2 flex items-center space-x-2 shrink-0 ${
-              activeTab === 'canvas'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <span>Digital Classroom Sessions</span>
-            <span className="text-[10px] bg-indigo-950 text-indigo-400 border border-indigo-800 px-1.5 py-0.5 rounded-full font-mono">
-              {sessions.length}
-            </span>
-          </button>
-          <button
-            onClick={() => setActiveTab('attendance')}
-            className={`pb-3 text-sm font-semibold transition cursor-pointer border-b-2 flex items-center space-x-2 shrink-0 ${
-              activeTab === 'attendance'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <span>Session Attendance</span>
-            {pendingAttendance.length > 0 && (
-              <span className="text-[10px] bg-amber-950 text-amber-400 border border-amber-800 px-1.5 py-0.5 rounded-full font-mono animate-pulse">
-                {pendingAttendance.length} Pending
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('marks')}
-            className={`pb-3 text-sm font-semibold transition cursor-pointer border-b-2 flex items-center space-x-2 shrink-0 ${
-              activeTab === 'marks'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <span>Gradebook & Marks</span>
-            <span className="text-[10px] bg-indigo-950 text-indigo-400 border border-indigo-800 px-1.5 py-0.5 rounded-full font-mono">
-              {assessments.length}
-            </span>
-          </button>
-          <button
-            onClick={() => setActiveTab('community')}
-            className={`pb-3 text-sm font-semibold transition cursor-pointer border-b-2 flex items-center space-x-2 shrink-0 ${
-              activeTab === 'community'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>Campus Community</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('doubts')}
-            className={`pb-3 text-sm font-semibold transition cursor-pointer border-b-2 flex items-center space-x-2 shrink-0 ${
-              activeTab === 'doubts'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <HelpCircle className="w-4 h-4" />
-            <span>Doubts & Solutions</span>
-          </button>
-        </div>
 
         {/* Tab 1: Faculty Command Dashboard */}
         {activeTab === 'profile' ? <ProfilePage /> : activeTab === 'settings' ? <AppearanceSettingsPage /> : activeTab === 'dashboard' ? (

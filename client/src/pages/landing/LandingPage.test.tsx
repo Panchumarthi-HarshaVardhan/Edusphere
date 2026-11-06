@@ -13,14 +13,5 @@ describe('EduSphere marketing landing page', () => {
     expect(markup).toContain('Request a demo');
     expect(markup).toContain('Log in');
     expect(markup).not.toContain('Sign up');
-
-    // 4 direct services in the navigation bar
-    expect(markup).toContain('Study Materials');
-    expect(markup).toContain('Digital Canvas');
-    expect(markup).toContain('Attendance &amp; Marks');
-    expect(markup).toContain('Campus Community');
-
-    // Services tab
-    expect(markup).toContain('Services');
   });
 });

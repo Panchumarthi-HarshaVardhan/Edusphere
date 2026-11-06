@@ -19,6 +19,8 @@ import {
   Megaphone,
   Pin,
   MessageSquare,
+  UserRound,
+  Settings2,
 } from 'lucide-react';
 
 import api from '../api/client';
@@ -68,16 +70,16 @@ export const StudentPortal: React.FC = () => {
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
   const [recentlyViewed, setRecentlyViewed] = useState<StudyMaterial[]>([]);
 
-  const pageHeader: Record<typeof activeTab, { title: string; description: string }> = {
-    dashboard: { title: "Today's Dashboard", description: 'Your timetable, academic progress, and campus updates in one view.' },
-    materials: { title: 'Course Study Materials', description: 'Browse lecture slides, previous year question papers, and lab guides. Preview documents online with PDF.js.' },
-    canvas: { title: 'Whiteboard Lessons', description: 'Review classroom lessons shared by your faculty.' },
-    attendance: { title: 'Attendance & Shortage Tracker', description: 'Review session records, subject percentages, and your attendance outlook.' },
-    marks: { title: 'Academic Performance & Grades', description: 'Review your published assessment scores and semester grade summary.' },
-    community: { title: 'Campus Community', description: 'Read and join conversations shared with your campus community.' },
-    doubts: { title: 'Academic Doubts', description: 'Ask subject questions, follow replies, and learn with your classmates.' },
-    profile: { title: 'My Profile', description: 'View and update your profile details.' },
-    settings: { title: 'Appearance Settings', description: 'Choose your preferred appearance for EduSphere.' },
+  const pageHeader: Record<typeof activeTab, { title: string; description: string; icon: React.ComponentType<{ className?: string }> }> = {
+    dashboard: { title: "Today's Academic Dashboard", description: 'Your timetable, academic progress, and campus updates in one view.', icon: LayoutDashboard },
+    materials: { title: 'Course Study Materials', description: 'Browse lecture slides, previous year question papers, and lab guides with in-browser preview.', icon: FileText },
+    canvas: { title: 'Whiteboard Lessons', description: 'Review classroom lessons and handwritten notes shared by your faculty.', icon: Sparkles },
+    attendance: { title: 'Attendance & Shortage Tracker', description: 'Review session records, subject percentages, and your attendance outlook.', icon: Calendar },
+    marks: { title: 'Academic Performance & Grades', description: 'Review your published assessment scores and semester grade summary.', icon: Award },
+    community: { title: 'Campus Community', description: 'Read and join conversations shared with your campus community.', icon: MessageSquare },
+    doubts: { title: 'Academic Doubts', description: 'Ask subject questions, follow replies, and learn with your classmates.', icon: HelpCircle },
+    profile: { title: 'My Profile', description: 'View and update your profile details.', icon: UserRound },
+    settings: { title: 'Appearance Settings', description: 'Choose your preferred appearance for EduSphere.', icon: Settings2 },
   };
 
   // Modals state
@@ -277,100 +279,10 @@ export const StudentPortal: React.FC = () => {
         {/* Context header */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
           <h1 className="text-xl font-bold text-white flex items-center space-x-2.5">
-            <FileText className="w-6 h-6 text-indigo-400" />
+            {React.createElement(pageHeader[activeTab].icon, { className: 'w-6 h-6 text-indigo-400' })}
             <span>{pageHeader[activeTab].title}</span>
           </h1>
           <p className="text-slate-400 text-xs mt-1">{pageHeader[activeTab].description}</p>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex border-b border-slate-800 space-x-6 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`pb-3 text-sm font-semibold transition cursor-pointer border-b-2 flex items-center space-x-2 shrink-0 ${
-              activeTab === 'dashboard'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <LayoutDashboard className="w-4 h-4" />
-            <span>Today's Dashboard</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('materials')}
-            className={`pb-3 text-sm font-semibold transition cursor-pointer border-b-2 shrink-0 ${
-              activeTab === 'materials'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Course Study Materials
-          </button>
-          <button
-            onClick={() => setActiveTab('canvas')}
-            className={`pb-3 text-sm font-semibold transition cursor-pointer border-b-2 flex items-center space-x-2 shrink-0 ${
-              activeTab === 'canvas'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <span>Whiteboard Lessons</span>
-            <span className="text-[10px] bg-indigo-950 text-indigo-400 border border-indigo-800 px-1.5 py-0.5 rounded-full font-mono">
-              {sessions.length}
-            </span>
-          </button>
-          <button
-            onClick={() => setActiveTab('attendance')}
-            className={`pb-3 text-sm font-semibold transition cursor-pointer border-b-2 flex items-center space-x-2 shrink-0 ${
-              activeTab === 'attendance'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <span>Attendance & Shortage Tracker</span>
-            {attendance?.hasShortage && (
-              <span className="text-[10px] bg-red-950 text-red-400 border border-red-800 px-1.5 py-0.5 rounded-full font-mono animate-pulse">
-                Shortage Alert
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('marks')}
-            className={`pb-3 text-sm font-semibold transition cursor-pointer border-b-2 flex items-center space-x-2 shrink-0 ${
-              activeTab === 'marks'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <span>Academic Performance & Grades</span>
-            {marksReport && marksReport.sgpa > 0 && (
-              <span className="text-[10px] bg-indigo-950 text-indigo-400 border border-indigo-800 px-1.5 py-0.5 rounded-full font-mono">
-                SGPA: {marksReport.sgpa}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('community')}
-            className={`pb-3 text-sm font-semibold transition cursor-pointer border-b-2 flex items-center space-x-2 shrink-0 ${
-              activeTab === 'community'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>Campus Community</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('doubts')}
-            className={`pb-3 text-sm font-semibold transition cursor-pointer border-b-2 flex items-center space-x-2 shrink-0 ${
-              activeTab === 'doubts'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <HelpCircle className="w-4 h-4" />
-            <span>Academic Doubts</span>
-          </button>
         </div>
 
         {/* Tab 1: Student Comprehensive Dashboard */}
