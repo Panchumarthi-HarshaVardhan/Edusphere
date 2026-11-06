@@ -249,26 +249,46 @@ export const AdminPortal: React.FC = () => {
     },
   ];
 
+  const tabTitles: Record<typeof activeTab, string> = {
+    overview: 'Institution Overview',
+    users: 'User Directory & Roles',
+    setup: 'Academic Setup',
+    analytics: 'Institutional Analytics',
+    announcements: 'Campus Announcements',
+    schedule: 'Timetable & Calendar',
+    audit: 'Tenant Audit Logs',
+    grades: 'Grading Scale & Rules',
+    appearance: 'Appearance Settings',
+  };
+
   return (
-    <PortalLayout portalName="Admin Command Center" sidebarItems={sidebarItems} onSettingsClick={() => setActiveTab('appearance')}>
-      <div className="admin-portal w-full max-w-[1500px] space-y-6">
+    <PortalLayout
+      portalName="Admin Command Center"
+      sidebarItems={sidebarItems}
+      onSettingsClick={() => setActiveTab('appearance')}
+      activeTitle={tabTitles[activeTab]}
+    >
+      <div className="w-full max-w-[1500px] space-y-6 mx-auto pb-12">
         {/* Banner */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center space-x-3 text-indigo-400 mb-1">
-              <ShieldCheck className="w-6 h-6" />
-              <h1 className="text-xl font-bold text-white">Administrative Command Center</h1>
+        <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-100">
+              <ShieldCheck className="w-5 h-5" />
             </div>
-            <p className="text-slate-400 text-sm">
-              Logged in as <span className="text-slate-200 font-semibold">{user?.firstName} {user?.lastName}</span> ({user?.role}).
-              Tenant-scoped to <span className="text-indigo-400 font-mono font-semibold">{user?.institutionName}</span>.
-            </p>
+            <div>
+              <h1 className="text-lg font-bold text-slate-900 tracking-tight">
+                Administrative Command Center
+              </h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Logged in as <strong className="text-slate-800">{user?.firstName} {user?.lastName}</strong> ({user?.role}) · Institution: <span className="text-indigo-700 font-medium">{user?.institutionName}</span>
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <span className="text-xs px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/70 dark:text-emerald-400 dark:border-emerald-800 rounded-full font-mono flex items-center space-x-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse"></span>
-              <span>Tenant Isolated</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full font-mono flex items-center gap-1.5 font-medium">
+              <span className="size-1.5 rounded-full bg-emerald-500" />
+              <span>Tenant Isolated (Multi-Institution)</span>
             </span>
           </div>
         </div>
@@ -280,50 +300,50 @@ export const AdminPortal: React.FC = () => {
         {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* Quick stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
-                <p className="text-xs uppercase tracking-wider text-slate-500 font-semibold">Tenant ID Scoping</p>
-                <p className="text-sm font-mono text-emerald-400 mt-2 truncate">{user?.institutionId}</p>
-                <span className="inline-block mt-3 text-[11px] px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white border border-slate-200/90 p-5 rounded-xl shadow-xs">
+                <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Tenant Scoping</p>
+                <p className="text-sm font-mono text-emerald-700 font-semibold mt-2 truncate">{user?.institutionId}</p>
+                <span className="inline-block mt-3 text-[11px] px-2.5 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md font-medium">
                   Rule 1: Scoped Queries Active
                 </span>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
-                <p className="text-xs uppercase tracking-wider text-slate-500 font-semibold">Current Threshold</p>
-                <p className="text-2xl font-black text-indigo-400 font-mono mt-1">
+              <div className="bg-white border border-slate-200/90 p-5 rounded-xl shadow-xs">
+                <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Attendance Threshold</p>
+                <p className="text-2xl font-black text-indigo-700 font-mono mt-1">
                   {settings?.defaultAttendanceThreshold || 75}%
                 </p>
-                <span className="inline-block mt-3 text-[11px] px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-400 dark:border-indigo-800 rounded-lg">
-                  Rule 6: Shortage Trigger
+                <span className="inline-block mt-3 text-[11px] px-2.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md font-medium">
+                  Rule 6: Shortage Trigger Minimum
                 </span>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
-                <p className="text-xs uppercase tracking-wider text-slate-500 font-semibold">Institution Domain</p>
-                <p className="text-lg font-bold text-white mt-1">{settings?.domain || 'edusphere.edu'}</p>
-                <span className="inline-block mt-3 text-[11px] px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg">
+              <div className="bg-white border border-slate-200/90 p-5 rounded-xl shadow-xs">
+                <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Institution Domain</p>
+                <p className="text-base font-bold text-slate-900 mt-1">{settings?.domain || 'edusphere.edu'}</p>
+                <span className="inline-block mt-3 text-[11px] px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-md font-medium">
                   Multi-Institution Mesh
                 </span>
               </div>
             </div>
 
             {/* Attendance Threshold Configuration Card (Rule 6) */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-              <div className="flex items-center space-x-3 text-indigo-400 mb-2">
-                <Sliders className="w-5 h-5" />
-                <h2 className="text-base font-bold text-white">Institutional Attendance Threshold Setting</h2>
+            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs">
+              <div className="flex items-center gap-2 text-indigo-700 mb-1.5">
+                <Sliders className="w-4 h-4" />
+                <h2 className="text-sm font-bold text-slate-900">Institutional Attendance Threshold Setting</h2>
               </div>
-              <p className="text-xs text-slate-400 mb-5">
+              <p className="text-xs text-slate-500 mb-4 max-w-2xl">
                 Set the default minimum attendance percentage threshold across all programs and sections. Students falling below this threshold will automatically be flagged for shortage warnings and What-If calculators.
               </p>
 
               <form onSubmit={handleUpdateThreshold} className="space-y-4 max-w-md">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Minimum Attendance Percentage (%)
                   </label>
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center gap-3">
                     <input
                       type="number"
                       min="50"
@@ -331,12 +351,12 @@ export const AdminPortal: React.FC = () => {
                       step="0.5"
                       value={thresholdInput}
                       onChange={(e) => setThresholdInput(parseFloat(e.target.value) || 0)}
-                      className="w-36 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono font-bold text-lg focus:outline-none focus:border-indigo-500"
+                      className="w-32 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono font-bold text-lg focus:bg-white focus:border-indigo-600 outline-none transition"
                     />
                     <button
                       type="submit"
                       disabled={isSavingSettings}
-                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition cursor-pointer disabled:opacity-50"
+                      className="saas-btn-primary py-2 px-4 text-xs disabled:opacity-50"
                     >
                       {isSavingSettings ? 'Saving...' : 'Apply Threshold'}
                     </button>
@@ -344,8 +364,8 @@ export const AdminPortal: React.FC = () => {
                 </div>
 
                 {settingsMessage && (
-                  <p className="text-xs text-emerald-400 font-medium flex items-center space-x-1.5">
-                    <CheckCircle2 className="w-4 h-4" />
+                  <p className="text-xs text-emerald-700 font-medium flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 p-2.5 rounded-lg">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>{settingsMessage}</span>
                   </p>
                 )}
@@ -358,20 +378,20 @@ export const AdminPortal: React.FC = () => {
         {activeTab === 'setup' && <AdminSetupPanel />}
         {activeTab === 'schedule' && <ScheduleAdminPanel />}
         {activeTab === 'users' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h2 className="text-base font-bold text-white">User Directory & Status Control</h2>
-                <p className="text-xs text-slate-400">
+                <h2 className="text-sm font-bold text-slate-900">User Directory & Status Control</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
                   Manage accounts with soft-delete (isActive) and role assignment.
                 </p>
               </div>
 
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center gap-2">
                 <select
                   value={userRoleFilter}
                   onChange={(e) => setUserRoleFilter(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                  className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 focus:bg-white focus:border-indigo-600 outline-none transition cursor-pointer"
                 >
                   <option value="">All Roles</option>
                   <option value="ADMIN">ADMIN</option>
@@ -381,14 +401,14 @@ export const AdminPortal: React.FC = () => {
                 </select>
 
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-500" />
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
                   <input
                     type="text"
                     placeholder="Search user..."
                     value={userSearch}
                     onChange={(e) => setUserSearch(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && fetchUsers()}
-                    className="pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-indigo-600 outline-none transition"
                   />
                 </div>
               </div>
@@ -397,11 +417,13 @@ export const AdminPortal: React.FC = () => {
             {loadingUsers ? (
               <div className="py-12 text-center text-xs text-slate-500">Loading user catalog...</div>
             ) : usersList.length === 0 ? (
-              <div className="py-12 text-center text-xs text-slate-500">No users found.</div>
+              <div className="py-12 text-center text-xs text-slate-500 border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
+                No users found.
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950/60 text-slate-400 font-mono uppercase border-b border-slate-800">
+                  <thead className="bg-slate-50 text-slate-600 font-mono uppercase border-b border-slate-200">
                     <tr>
                       <th className="py-2.5 px-3">Name & Email</th>
                       <th className="py-2.5 px-3">Role</th>
@@ -410,29 +432,29 @@ export const AdminPortal: React.FC = () => {
                       <th className="py-2.5 px-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-slate-100">
                     {usersList.map((u) => (
-                      <tr key={u.id} className="hover:bg-slate-800/30">
+                      <tr key={u.id} className="hover:bg-slate-50/70 transition">
                         <td className="py-2.5 px-3">
-                          <p className="font-semibold text-white">
+                          <p className="font-semibold text-slate-900">
                             {u.firstName} {u.lastName}
                           </p>
                           <p className="text-[11px] text-slate-400 font-mono">{u.email}</p>
                         </td>
                         <td className="py-2.5 px-3">
                           <span
-                            className={`px-2 py-0.5 rounded-md font-mono text-[10px] ${
+                            className={`px-2 py-0.5 rounded font-mono text-[10px] font-semibold border ${
                               u.role === 'ADMIN'
-                                ? 'bg-purple-950 text-purple-300 border border-purple-800'
+                                ? 'bg-purple-50 text-purple-700 border-purple-200'
                                 : u.role === 'FACULTY'
-                                ? 'bg-indigo-950 text-indigo-300 border border-indigo-800'
-                                : 'bg-cyan-950 text-cyan-300 border border-cyan-800'
+                                ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                : 'bg-cyan-50 text-cyan-700 border-cyan-200'
                             }`}
                           >
                             {u.role}
                           </span>
                         </td>
-                        <td className="py-2.5 px-3 text-slate-400 text-[11px]">
+                        <td className="py-2.5 px-3 text-slate-500 text-[11px]">
                           {u.department
                             ? `Dept: ${u.department.code}`
                             : u.enrollments && u.enrollments.length > 0
@@ -441,24 +463,25 @@ export const AdminPortal: React.FC = () => {
                         </td>
                         <td className="py-2.5 px-3">
                           {u.isActive ? (
-                            <span className="text-emerald-400 font-medium flex items-center space-x-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            <span className="text-emerald-700 font-medium flex items-center gap-1.5 text-xs">
+                              <span className="size-1.5 rounded-full bg-emerald-500" />
                               <span>Active</span>
                             </span>
                           ) : (
-                            <span className="text-red-400 font-medium flex items-center space-x-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                            <span className="text-rose-600 font-medium flex items-center gap-1.5 text-xs">
+                              <span className="size-1.5 rounded-full bg-rose-500" />
                               <span>Deactivated</span>
                             </span>
                           )}
                         </td>
                         <td className="py-2.5 px-3 text-right">
                           <button
+                            type="button"
                             onClick={() => handleToggleUserStatus(u.id, u.isActive)}
-                            className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer ${
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer border ${
                               u.isActive
-                                ? 'bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/80'
-                                : 'bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-800/80'
+                                ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200'
+                                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
                             }`}
                           >
                             {u.isActive ? 'Deactivate' : 'Reactivate'}
@@ -475,17 +498,18 @@ export const AdminPortal: React.FC = () => {
 
         {/* Tab 3: Tenant Audit Logs (Rule 1 & Rule 4) */}
         {activeTab === 'audit' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-base font-bold text-white">Immutable Institutional Audit Log</h2>
-                <p className="text-xs text-slate-400">
+                <h2 className="text-sm font-bold text-slate-900">Immutable Institutional Audit Log</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
                   Every published marks change, sensitive setting update, and status toggle is recorded here (Rule 4).
                 </p>
               </div>
               <button
+                type="button"
                 onClick={fetchAuditLogs}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition cursor-pointer"
+                className="saas-btn-secondary text-xs py-1.5"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Refresh Logs</span>
@@ -493,30 +517,56 @@ export const AdminPortal: React.FC = () => {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <label className="grid gap-1 text-[10px] uppercase tracking-wide text-slate-500">User
-                <select value={auditFilters.userId} onChange={(e) => setAuditFilters({ ...auditFilters, userId: e.target.value })} className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200">
-                  <option value="">All users</option>{auditUsers.map((u) => <option key={u.id} value={u.id}>{u.firstName} {u.lastName} · {u.email}</option>)}
+              <label className="grid gap-1 text-[11px] uppercase tracking-wide text-slate-500 font-medium">User
+                <select
+                  value={auditFilters.userId}
+                  onChange={(e) => setAuditFilters({ ...auditFilters, userId: e.target.value })}
+                  className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 outline-none"
+                >
+                  <option value="">All users</option>
+                  {auditUsers.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.firstName} {u.lastName} · {u.email}
+                    </option>
+                  ))}
                 </select>
               </label>
-              <label className="grid gap-1 text-[10px] uppercase tracking-wide text-slate-500">Action
-                <input value={auditFilters.action} onChange={(e) => setAuditFilters({ ...auditFilters, action: e.target.value })} placeholder="Filter action" className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200" />
+              <label className="grid gap-1 text-[11px] uppercase tracking-wide text-slate-500 font-medium">Action
+                <input
+                  value={auditFilters.action}
+                  onChange={(e) => setAuditFilters({ ...auditFilters, action: e.target.value })}
+                  placeholder="Filter action..."
+                  className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 outline-none"
+                />
               </label>
-              <label className="grid gap-1 text-[10px] uppercase tracking-wide text-slate-500">From
-                <input type="date" value={auditFilters.startDate} onChange={(e) => setAuditFilters({ ...auditFilters, startDate: e.target.value })} className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200" />
+              <label className="grid gap-1 text-[11px] uppercase tracking-wide text-slate-500 font-medium">From
+                <input
+                  type="date"
+                  value={auditFilters.startDate}
+                  onChange={(e) => setAuditFilters({ ...auditFilters, startDate: e.target.value })}
+                  className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 outline-none"
+                />
               </label>
-              <label className="grid gap-1 text-[10px] uppercase tracking-wide text-slate-500">Through
-                <input type="date" value={auditFilters.endDate} onChange={(e) => setAuditFilters({ ...auditFilters, endDate: e.target.value })} className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200" />
+              <label className="grid gap-1 text-[11px] uppercase tracking-wide text-slate-500 font-medium">Through
+                <input
+                  type="date"
+                  value={auditFilters.endDate}
+                  onChange={(e) => setAuditFilters({ ...auditFilters, endDate: e.target.value })}
+                  className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 outline-none"
+                />
               </label>
             </div>
 
             {loadingLogs ? (
               <div className="py-12 text-center text-xs text-slate-500">Loading audit records...</div>
             ) : auditLogs.length === 0 ? (
-              <div className="py-12 text-center text-xs text-slate-500">No audit records logged yet.</div>
+              <div className="py-12 text-center text-xs text-slate-500 border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
+                No audit records logged yet.
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950/60 text-slate-400 font-mono uppercase border-b border-slate-800">
+                  <thead className="bg-slate-50 text-slate-600 font-mono uppercase border-b border-slate-200">
                     <tr>
                       <th className="py-2.5 px-3">Timestamp</th>
                       <th className="py-2.5 px-3">Actor</th>
@@ -525,26 +575,26 @@ export const AdminPortal: React.FC = () => {
                       <th className="py-2.5 px-3">Details / Delta</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-slate-100">
                     {auditLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-slate-800/30">
-                        <td className="py-2.5 px-3 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                      <tr key={log.id} className="hover:bg-slate-50/70 transition">
+                        <td className="py-2.5 px-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">
                           {new Date(log.createdAt).toLocaleString()}
                         </td>
                         <td className="py-2.5 px-3">
-                          <p className="font-semibold text-white">
+                          <p className="font-semibold text-slate-900">
                             {log.user ? `${log.user.firstName} ${log.user.lastName}` : 'System'}
                           </p>
                           <p className="text-[10px] text-slate-400 font-mono">{log.user?.email || 'N/A'}</p>
                         </td>
                         <td className="py-2.5 px-3">
-                          <span className="px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 font-mono text-[10px]">
+                          <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 font-mono text-[10px] font-semibold">
                             {log.action}
                           </span>
                         </td>
-                        <td className="py-2.5 px-3 text-slate-300 font-mono text-[11px]">{log.resource}</td>
+                        <td className="py-2.5 px-3 text-slate-700 font-mono text-[11px]">{log.resource}</td>
                         <td className="py-2.5 px-3">
-                          <pre className="text-[10px] text-slate-300 font-mono bg-slate-950 p-2 rounded-lg max-w-xs overflow-x-auto">
+                          <pre className="text-[10px] text-slate-700 font-mono bg-slate-50 border border-slate-200 p-2 rounded max-w-xs overflow-x-auto">
                             {JSON.stringify(log.details, null, 1)}
                           </pre>
                         </td>
@@ -559,26 +609,27 @@ export const AdminPortal: React.FC = () => {
 
         {/* Tab 4: Grading Scale & Rules Configuration */}
         {activeTab === 'grades' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+          <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-base font-bold text-white">Institutional Grade Rules & Scale</h2>
-                <p className="text-xs text-slate-400">
+                <h2 className="text-sm font-bold text-slate-900">Institutional Grade Rules & Scale</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
                   Configure cutoffs for letter grades and grade points used in marks calculation.
                 </p>
               </div>
               <button
+                type="button"
                 onClick={handleSaveGradeRules}
                 disabled={savingGrades}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition cursor-pointer disabled:opacity-50"
+                className="saas-btn-primary disabled:opacity-50"
               >
                 {savingGrades ? 'Saving...' : 'Save Grade Rules'}
               </button>
             </div>
 
             {gradeMessage && (
-              <p className="text-xs text-emerald-400 font-medium flex items-center space-x-1.5">
-                <CheckCircle2 className="w-4 h-4" />
+              <p className="text-xs text-emerald-700 font-medium flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 p-2.5 rounded-lg">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>{gradeMessage}</span>
               </p>
             )}
@@ -586,11 +637,13 @@ export const AdminPortal: React.FC = () => {
             {loadingGrades ? (
               <div className="py-12 text-center text-xs text-slate-500">Loading grade rules...</div>
             ) : gradeRules.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-500">No custom grade rules found. Default 10-point scale active.</div>
+              <div className="py-8 text-center text-xs text-slate-500 border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
+                No custom grade rules found. Default 10-point scale active.
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950/60 text-slate-400 font-mono uppercase border-b border-slate-800">
+                  <thead className="bg-slate-50 text-slate-600 font-mono uppercase border-b border-slate-200">
                     <tr>
                       <th className="py-2.5 px-3">Grade Letter</th>
                       <th className="py-2.5 px-3">Grade Point</th>
@@ -599,20 +652,20 @@ export const AdminPortal: React.FC = () => {
                       <th className="py-2.5 px-3">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 font-mono">
+                  <tbody className="divide-y divide-slate-100 font-mono">
                     {gradeRules.map((rule, idx) => (
-                      <tr key={idx} className="hover:bg-slate-800/30">
-                        <td className="py-2.5 px-3 font-bold text-white text-sm">{rule.gradeLetter}</td>
-                        <td className="py-2.5 px-3 text-indigo-400 font-bold">{rule.gradePoint.toFixed(1)}</td>
-                        <td className="py-2.5 px-3 text-slate-300">{rule.minPercentage}%</td>
-                        <td className="py-2.5 px-3 text-slate-300">{rule.maxPercentage}%</td>
+                      <tr key={idx} className="hover:bg-slate-50/70 transition">
+                        <td className="py-2.5 px-3 font-bold text-slate-900 text-sm">{rule.gradeLetter}</td>
+                        <td className="py-2.5 px-3 text-indigo-700 font-bold">{rule.gradePoint.toFixed(1)}</td>
+                        <td className="py-2.5 px-3 text-slate-700">{rule.minPercentage}%</td>
+                        <td className="py-2.5 px-3 text-slate-700">{rule.maxPercentage}%</td>
                         <td className="py-2.5 px-3">
                           {rule.isPass ? (
-                            <span className="text-[10px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
+                            <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-semibold">
                               PASS
                             </span>
                           ) : (
-                            <span className="text-[10px] text-red-400 bg-red-950/60 px-2 py-0.5 rounded border border-red-800">
+                            <span className="text-[10px] text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 font-semibold">
                               FAIL
                             </span>
                           )}

@@ -274,61 +274,239 @@ export const StudentPortal: React.FC = () => {
       sidebarItems={sidebarItems}
       onProfileClick={() => setActiveTab('profile')}
       onSettingsClick={() => setActiveTab('settings')}
+      activeTitle={pageHeader[activeTab].title}
     >
-      <div className="space-y-6 max-w-7xl">
-        {/* Context header */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <h1 className="text-xl font-bold text-white flex items-center space-x-2.5">
-            {React.createElement(pageHeader[activeTab].icon, { className: 'w-6 h-6 text-indigo-400' })}
-            <span>{pageHeader[activeTab].title}</span>
-          </h1>
-          <p className="text-slate-400 text-xs mt-1">{pageHeader[activeTab].description}</p>
+      <div className="space-y-6 max-w-7xl mx-auto pb-12">
+        {/* Page Context Header Banner */}
+        <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-100">
+              {React.createElement(pageHeader[activeTab].icon, { className: 'w-5 h-5' })}
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-slate-900 tracking-tight">
+                {pageHeader[activeTab].title}
+              </h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {pageHeader[activeTab].description}
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Header Actions */}
+          <div className="flex items-center gap-2">
+            {activeTab === 'materials' && (
+              <button
+                type="button"
+                onClick={() => setBookmarkedOnly(!bookmarkedOnly)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
+                  bookmarkedOnly
+                    ? 'bg-amber-50 text-amber-700 border-amber-200 shadow-xs'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <Bookmark className="w-3.5 h-3.5 text-amber-500" />
+                <span>{bookmarkedOnly ? 'Bookmarked Only' : 'All Materials'}</span>
+              </button>
+            )}
+
+            {activeTab === 'attendance' && (
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                attendance?.hasShortage
+                  ? 'bg-rose-50 text-rose-700 border-rose-200'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              }`}>
+                <span className={`size-1.5 rounded-full ${attendance?.hasShortage ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+                {attendance?.hasShortage ? 'Shortage Alert (< 75%)' : 'Attendance Good Standing'}
+              </span>
+            )}
+
+            {activeTab === 'dashboard' && (
+              <button
+                type="button"
+                onClick={() => setIsAskDoubtOpen(true)}
+                className="saas-btn-primary"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+                <span>Ask a Doubt</span>
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Tab 1: Student Comprehensive Dashboard */}
-        {activeTab === 'profile' ? <ProfilePage /> : activeTab === 'settings' ? <AppearanceSettingsPage /> : activeTab === 'dashboard' ? (
+        {/* Tab Content Routing */}
+        {activeTab === 'profile' ? (
+          <ProfilePage />
+        ) : activeTab === 'settings' ? (
+          <AppearanceSettingsPage />
+        ) : activeTab === 'dashboard' ? (
           <div className="space-y-6">
-            {/* Today's Timetable Section */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2 text-indigo-400">
-                  <Clock className="w-5 h-5" />
-                  <h2 className="text-base font-bold text-white">Today's Class Timetable</h2>
+            {/* Top 4 Key Metric Cards Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Stat 1: Overall Attendance */}
+              <div className="bg-white border border-slate-200/90 rounded-xl p-4.5 shadow-xs hover:border-slate-300 transition">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Overall Attendance
+                  </span>
+                  <div className="grid size-7 place-items-center rounded-lg bg-indigo-50 text-indigo-700">
+                    <Calendar className="w-3.5 h-3.5" />
+                  </div>
                 </div>
-                <span className="text-xs text-slate-400 font-mono">
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span
+                    className={`text-2xl font-bold font-mono tracking-tight ${
+                      dashboardData?.attendance?.hasShortage ? 'text-rose-600' : 'text-slate-900'
+                    }`}
+                  >
+                    {dashboardData?.attendance?.overallPercentage ?? 100}%
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    (Min: {dashboardData?.attendance?.threshold ?? 75}%)
+                  </span>
+                </div>
+                <div className="mt-2.5 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500">
+                    {dashboardData?.attendance?.presentCount || 0} of {dashboardData?.attendance?.totalConducted || 0} classes
+                  </span>
+                  <span
+                    className={`font-semibold ${
+                      dashboardData?.attendance?.hasShortage ? 'text-rose-600' : 'text-emerald-600'
+                    }`}
+                  >
+                    {dashboardData?.attendance?.hasShortage ? 'Shortage' : 'Eligible'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Stat 2: Academic SGPA */}
+              <div className="bg-white border border-slate-200/90 rounded-xl p-4.5 shadow-xs hover:border-slate-300 transition">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Academic SGPA
+                  </span>
+                  <div className="grid size-7 place-items-center rounded-lg bg-emerald-50 text-emerald-700">
+                    <Award className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className="text-2xl font-bold font-mono tracking-tight text-slate-900">
+                    {marksReport?.sgpa ?? '10.00'}
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-medium">/ 10.0 scale</span>
+                </div>
+                <div className="mt-2.5 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500">
+                    {marksReport?.totalCredits || 18} Registered Credits
+                  </span>
+                  <span className="font-semibold text-emerald-600 font-mono">
+                    Grade A+
+                  </span>
+                </div>
+              </div>
+
+              {/* Stat 3: Study Materials */}
+              <div className="bg-white border border-slate-200/90 rounded-xl p-4.5 shadow-xs hover:border-slate-300 transition">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Course Materials
+                  </span>
+                  <div className="grid size-7 place-items-center rounded-lg bg-blue-50 text-blue-700">
+                    <FileText className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className="text-2xl font-bold font-mono tracking-tight text-slate-900">
+                    {materials.length}
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-medium">Available</span>
+                </div>
+                <div className="mt-2.5 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500">PDFs, Notes & Slides</span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('materials')}
+                    className="font-semibold text-indigo-700 hover:underline cursor-pointer"
+                  >
+                    Browse →
+                  </button>
+                </div>
+              </div>
+
+              {/* Stat 4: Today's Schedule count */}
+              <div className="bg-white border border-slate-200/90 rounded-xl p-4.5 shadow-xs hover:border-slate-300 transition">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Today's Classes
+                  </span>
+                  <div className="grid size-7 place-items-center rounded-lg bg-amber-50 text-amber-700">
+                    <Clock className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className="text-2xl font-bold font-mono tracking-tight text-slate-900">
+                    {dashboardData?.timetable?.length || 0}
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-medium">Sessions</span>
+                </div>
+                <div className="mt-2.5 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500">
+                    {new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                  </span>
+                  <span className="font-semibold text-slate-700">Scheduled</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Today's Timetable Section */}
+            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2 text-indigo-700">
+                  <Clock className="w-4 h-4" />
+                  <h2 className="text-sm font-bold text-slate-900">Today's Class Timetable</h2>
+                </div>
+                <span className="text-xs text-slate-500 font-medium">
                   {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
                 </span>
               </div>
 
               {!dashboardData?.timetable || dashboardData.timetable.length === 0 ? (
-                <div className="py-8 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">
-                  No classes scheduled for today. Enjoy your academic study and lab prep!
+                <div className="py-8 text-center text-xs text-slate-500 border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
+                  No classes scheduled for today. Take this time to review lecture notes and assignments!
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                   {dashboardData.timetable.map((slot) => (
                     <div
                       key={slot.id}
-                      className={`bg-slate-950 border rounded-xl p-4 flex flex-col justify-between space-y-3 ${'status' in slot && slot.status === 'CANCELLED' ? 'border-red-800 opacity-70' : 'border-slate-800'}`}
+                      className={`border rounded-lg p-4 flex flex-col justify-between space-y-3 bg-slate-50/50 hover:bg-white hover:border-indigo-300 transition shadow-2xs ${
+                        'status' in slot && slot.status === 'CANCELLED'
+                          ? 'border-rose-200 opacity-70 bg-rose-50/30'
+                          : 'border-slate-200'
+                      }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-indigo-950 text-indigo-300 border border-indigo-800 font-mono font-semibold">
+                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 font-mono font-semibold">
                           Period {slot.periodNumber}
                         </span>
-                        <span className="text-xs text-slate-400 font-mono">
+                        <span className="text-xs text-slate-500 font-mono">
                           {slot.startTime} - {slot.endTime}
                         </span>
                       </div>
 
                       <div>
-                        <h3 className="font-bold text-sm text-white">{slot.subject.code}</h3>
-                        <p className="text-xs text-slate-300 truncate">{slot.subject.name}</p>
-                        {'status' in slot && slot.status === 'CANCELLED' && <p className="text-xs text-red-300 mt-1">Cancelled{slot.note ? ` · ${slot.note}` : ''}</p>}
+                        <h3 className="font-bold text-sm text-slate-900">{slot.subject.code}</h3>
+                        <p className="text-xs text-slate-600 truncate mt-0.5">{slot.subject.name}</p>
+                        {'status' in slot && slot.status === 'CANCELLED' && (
+                          <p className="text-xs text-rose-600 font-medium mt-1">
+                            Cancelled{slot.note ? ` · ${slot.note}` : ''}
+                          </p>
+                        )}
                       </div>
 
-                      <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                        <span>Room: {slot.roomNumber || 'Main Lab'}</span>
-                        <span className="text-slate-300 font-medium">
+                      <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px] text-slate-500">
+                        <span>Room: <strong className="text-slate-700">{slot.roomNumber || 'Main Lab'}</strong></span>
+                        <span className="text-slate-700 font-medium">
                           {slot.faculty.firstName} {slot.faculty.lastName}
                         </span>
                       </div>
@@ -338,22 +516,38 @@ export const StudentPortal: React.FC = () => {
               )}
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-              <div className="flex items-center gap-2 text-indigo-400 mb-4">
-                <CalendarCheck className="w-5 h-5" />
-                <h2 className="text-base font-bold text-white">Weekly timetable & academic calendar</h2>
+            {/* Weekly Timetable & Academic Calendar */}
+            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs">
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="flex items-center gap-2 text-indigo-700">
+                  <CalendarCheck className="w-4 h-4" />
+                  <h2 className="text-sm font-bold text-slate-900">Weekly Timetable & Academic Calendar</h2>
+                </div>
+                <span className="text-[11px] text-slate-400 font-medium">Current Semester</span>
               </div>
+
               {!dashboardData?.calendar?.length ? (
-                <p className="text-xs text-slate-500 text-center py-5">No classes or calendar events for this week.</p>
+                <p className="text-xs text-slate-500 text-center py-6 border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
+                  No classes or calendar events scheduled for this week.
+                </p>
               ) : (
-                <div className="divide-y divide-slate-800">
+                <div className="divide-y divide-slate-100">
                   {dashboardData.calendar.map((item) => (
-                    <div key={item.id} className="py-3 flex items-center justify-between gap-4">
-                      <div>
-                        <p className="text-sm text-white font-medium">{item.title}</p>
-                        <p className="text-xs text-slate-400">{new Date(`${item.date}T00:00:00`).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}{item.endDate && item.endDate !== item.date ? ` – ${new Date(`${item.endDate}T00:00:00`).toLocaleDateString()}` : ''}{item.type === 'CLASS' && 'periodNumber' in item ? ` · Period ${item.periodNumber}` : ''}{item.type === 'CLASS' && 'startTime' in item ? ` · ${item.startTime}–${item.endTime}` : ''}</p>
+                    <div key={item.id} className="py-2.5 flex items-center justify-between gap-4 hover:bg-slate-50/50 px-2 rounded-md transition">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-slate-900 truncate">{item.title}</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          {new Date(`${item.date}T00:00:00`).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                          {item.endDate && item.endDate !== item.date ? ` – ${new Date(`${item.endDate}T00:00:00`).toLocaleDateString()}` : ''}
+                          {item.type === 'CLASS' && 'periodNumber' in item ? ` · Period ${item.periodNumber}` : ''}
+                          {item.type === 'CLASS' && 'startTime' in item ? ` · ${item.startTime}–${item.endTime}` : ''}
+                        </p>
                       </div>
-                      <span className={`text-[10px] px-2 py-1 rounded border ${item.type === 'CLASS' ? 'text-indigo-300 bg-indigo-950 border-indigo-800' : 'text-amber-300 bg-amber-950 border-amber-800'}`}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${
+                        item.type === 'CLASS'
+                          ? 'text-indigo-700 bg-indigo-50 border-indigo-200'
+                          : 'text-amber-700 bg-amber-50 border-amber-200'
+                      }`}>
                         {item.status === 'CANCELLED' ? 'CANCELLED' : item.type.replaceAll('_', ' ')}
                       </span>
                     </div>
@@ -362,82 +556,95 @@ export const StudentPortal: React.FC = () => {
               )}
             </div>
 
-            {/* Quick Metrics Grid (Attendance Overview & Latest Marks) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Attendance Overview & Latest Published Marks Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Attendance Card */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+              <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+                    <span className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
                       Attendance Overview
                     </span>
                     {dashboardData?.attendance?.hasShortage ? (
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-mono animate-pulse">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-semibold">
                         Shortage Warning
                       </span>
                     ) : (
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-mono">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
                         In Good Standing
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-baseline space-x-3">
+                  <div className="flex items-baseline gap-3">
                     <span
-                      className={`text-3xl font-extrabold font-mono ${
-                        dashboardData?.attendance?.hasShortage ? 'text-red-400' : 'text-emerald-400'
+                      className={`text-3xl font-extrabold font-mono tracking-tight ${
+                        dashboardData?.attendance?.hasShortage ? 'text-rose-600' : 'text-slate-900'
                       }`}
                     >
                       {dashboardData?.attendance?.overallPercentage ?? 100}%
                     </span>
-                    <span className="text-xs text-slate-500 font-mono">
+                    <span className="text-xs text-slate-400 font-medium">
                       (Institutional Min: {dashboardData?.attendance?.threshold ?? 75}%)
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-400 mt-2">
+                  {/* Visual Progress Bar */}
+                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-3">
+                    <div
+                      style={{ width: `${Math.min(100, dashboardData?.attendance?.overallPercentage || 100)}%` }}
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        dashboardData?.attendance?.hasShortage ? 'bg-rose-500' : 'bg-indigo-600'
+                      }`}
+                    />
+                  </div>
+
+                  <p className="text-xs text-slate-500 mt-2.5">
                     {dashboardData?.attendance?.presentCount || 0} present • {dashboardData?.attendance?.lateCount || 0} late out of {dashboardData?.attendance?.totalConducted || 0} classes conducted.
                   </p>
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => setActiveTab('attendance')}
-                  className="mt-4 w-full py-2 bg-slate-950 hover:bg-slate-800 text-indigo-400 border border-slate-800 rounded-xl text-xs font-semibold transition cursor-pointer text-center"
+                  className="mt-4 w-full py-2 bg-slate-50 hover:bg-slate-100 text-indigo-700 border border-slate-200 rounded-lg text-xs font-semibold transition cursor-pointer text-center"
                 >
-                  View Attendance Breakdown & What-If Calculator →
+                  View Attendance Breakdown & What-If Simulator →
                 </button>
               </div>
 
               {/* Latest Published Marks */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+              <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+                    <span className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
                       Latest Published Scores
                     </span>
-                    <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono">
-                      Rule 5: Official Only
+                    <span className="text-[10px] bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded font-mono">
+                      Official Only
                     </span>
                   </div>
 
                   {(!dashboardData?.latestMarks || dashboardData.latestMarks.length === 0) ? (
-                    <p className="text-xs text-slate-500 py-4">No published scores available yet.</p>
+                    <p className="text-xs text-slate-500 py-6 text-center border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
+                      No published scores available yet.
+                    </p>
                   ) : (
                     <div className="space-y-2">
                       {dashboardData.latestMarks.slice(0, 3).map((m) => (
                         <div
                           key={m.id}
-                          className="flex items-center justify-between p-2.5 bg-slate-950 rounded-xl border border-slate-800/80 text-xs"
+                          className="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-200/80 text-xs"
                         >
                           <div>
-                            <p className="font-semibold text-white">{m.assessmentName}</p>
-                            <p className="text-[10px] text-slate-400 font-mono">{m.subjectCode}</p>
+                            <p className="font-semibold text-slate-900">{m.assessmentName}</p>
+                            <p className="text-[10px] text-slate-500 font-mono">{m.subjectCode}</p>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="font-mono font-bold text-white">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-slate-900">
                               {m.isAbsent ? 'Absent' : `${m.score}/${m.maxMarks}`}
                             </span>
-                            <span className="font-mono font-bold text-indigo-400 bg-indigo-950/70 border border-indigo-800/80 px-2 py-0.5 rounded-lg text-xs">
+                            <span className="font-mono font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded text-xs">
                               {m.gradeLetter || '-'}
                             </span>
                           </div>
@@ -448,8 +655,9 @@ export const StudentPortal: React.FC = () => {
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => setActiveTab('marks')}
-                  className="mt-4 w-full py-2 bg-slate-950 hover:bg-slate-800 text-indigo-400 border border-slate-800 rounded-xl text-xs font-semibold transition cursor-pointer text-center"
+                  className="mt-4 w-full py-2 bg-slate-50 hover:bg-slate-100 text-indigo-700 border border-slate-200 rounded-lg text-xs font-semibold transition cursor-pointer text-center"
                 >
                   View Full Academic Report & SGPA →
                 </button>
@@ -457,39 +665,43 @@ export const StudentPortal: React.FC = () => {
             </div>
 
             {/* Recent Materials & Campus Announcements */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Recent Materials */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+              <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+                  <h3 className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
                     Recently Uploaded Materials
                   </h3>
                   <button
+                    type="button"
                     onClick={() => setActiveTab('materials')}
-                    className="text-xs text-indigo-400 hover:underline cursor-pointer"
+                    className="text-xs text-indigo-700 hover:underline cursor-pointer font-medium"
                   >
                     View All
                   </button>
                 </div>
 
                 {(!dashboardData?.recentMaterials || dashboardData.recentMaterials.length === 0) ? (
-                  <p className="text-xs text-slate-500 py-4">No study materials posted yet.</p>
+                  <p className="text-xs text-slate-500 py-6 text-center border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
+                    No study materials posted yet.
+                  </p>
                 ) : (
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     {dashboardData.recentMaterials.map((mat) => (
                       <div
                         key={mat.id}
-                        className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-xs"
+                        className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between text-xs"
                       >
                         <div className="min-w-0 pr-2">
-                          <p className="font-semibold text-white truncate">{mat.title}</p>
-                          <p className="text-[10px] text-slate-400">
+                          <p className="font-semibold text-slate-900 truncate">{mat.title}</p>
+                          <p className="text-[10px] text-slate-500 mt-0.5">
                             {mat.subjectName} • {mat.type.replace('_', ' ')}
                           </p>
                         </div>
                         <button
+                          type="button"
                           onClick={() => handleOpenViewer(mat as any)}
-                          className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11px] font-semibold flex items-center space-x-1 shrink-0 transition cursor-pointer"
+                          className="px-2.5 py-1 bg-indigo-700 hover:bg-indigo-800 text-white rounded-md text-[11px] font-semibold flex items-center gap-1 shrink-0 transition cursor-pointer shadow-2xs"
                         >
                           <Eye className="w-3 h-3" />
                           <span>View</span>
@@ -501,34 +713,36 @@ export const StudentPortal: React.FC = () => {
               </div>
 
               {/* Campus Announcements */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                <div className="flex items-center space-x-2 text-cyan-400 mb-3">
+              <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs">
+                <div className="flex items-center gap-2 text-indigo-700 mb-3">
                   <Megaphone className="w-4 h-4" />
-                  <h3 className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+                  <h3 className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
                     Campus Circulars & Announcements
                   </h3>
                 </div>
 
                 {(!dashboardData?.announcements || dashboardData.announcements.length === 0) ? (
-                  <p className="text-xs text-slate-500 py-4">No campus circulars at this time.</p>
+                  <p className="text-xs text-slate-500 py-6 text-center border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
+                    No campus circulars at this time.
+                  </p>
                 ) : (
                   <div className="space-y-2.5">
                     {dashboardData.announcements.map((ann) => (
                       <div
                         key={ann.id}
-                        className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs space-y-1"
+                        className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-1"
                       >
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-1.5 font-bold text-white">
-                            {ann.isPinned && <Pin className="w-3.5 h-3.5 text-amber-400" />}
+                          <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                            {ann.isPinned && <Pin className="w-3.5 h-3.5 text-amber-500" />}
                             <span>{ann.title}</span>
                           </div>
-                          <span className="text-[10px] text-slate-500 font-mono">
+                          <span className="text-[10px] text-slate-400 font-mono">
                             {new Date(ann.createdAt).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-300 whitespace-pre-wrap">{ann.content}</p>
-                        <p className="text-[10px] text-slate-500 font-mono">
+                        <p className="text-[11px] text-slate-600 whitespace-pre-wrap">{ann.content}</p>
+                        <p className="text-[10px] text-slate-400 font-mono mt-1">
                           By: {ann.author.firstName} {ann.author.lastName} ({ann.author.role})
                         </p>
                       </div>
@@ -539,21 +753,22 @@ export const StudentPortal: React.FC = () => {
             </div>
 
             {/* Unanswered Academic Doubts */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs space-y-3.5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-indigo-400">
-                  <HelpCircle className="w-5 h-5" />
+                <div className="flex items-center gap-2 text-indigo-700">
+                  <HelpCircle className="w-4 h-4" />
                   <div>
-                    <h2 className="text-base font-bold text-white">My Academic Doubts & Q&A</h2>
-                    <p className="text-xs text-slate-400">
+                    <h2 className="text-sm font-bold text-slate-900">My Academic Doubts & Q&A</h2>
+                    <p className="text-xs text-slate-500">
                       Track instructor responses to your questions or post a new doubt.
                     </p>
                   </div>
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => setIsAskDoubtOpen(true)}
-                  className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition cursor-pointer shadow-sm shadow-indigo-600/30"
+                  className="saas-btn-primary"
                 >
                   <HelpCircle className="w-3.5 h-3.5" />
                   <span>+ Ask a Doubt</span>
@@ -561,26 +776,26 @@ export const StudentPortal: React.FC = () => {
               </div>
 
               {(!dashboardData?.unansweredDoubts || dashboardData.unansweredDoubts.length === 0) ? (
-                <div className="py-6 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">
+                <div className="py-6 text-center text-xs text-slate-500 border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
                   You have no pending unanswered doubts. Click "+ Ask a Doubt" if you need instructor help!
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {dashboardData.unansweredDoubts.map((doubt) => (
                     <div
                       key={doubt.id}
-                      className="p-3.5 bg-slate-950 rounded-xl border border-slate-800 space-y-2 text-xs"
+                      className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1.5 text-xs"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] bg-indigo-950 text-indigo-300 border border-indigo-800 px-2 py-0.5 rounded font-mono">
+                        <span className="text-[10px] bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded font-mono font-semibold">
                           {doubt.subject?.code} - {doubt.subject?.name}
                         </span>
-                        <span className="text-[10px] text-amber-400 font-mono">
+                        <span className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded font-mono">
                           Awaiting Instructor Reply
                         </span>
                       </div>
-                      <h4 className="font-bold text-white">{doubt.title}</h4>
-                      <p className="text-slate-300 text-[11px] whitespace-pre-wrap">{doubt.content}</p>
+                      <h4 className="font-bold text-slate-900">{doubt.title}</h4>
+                      <p className="text-slate-600 text-[11px] whitespace-pre-wrap">{doubt.content}</p>
                     </div>
                   ))}
                 </div>
@@ -590,45 +805,45 @@ export const StudentPortal: React.FC = () => {
         ) : activeTab === 'marks' ? (
           <div className="space-y-6">
             {/* SGPA & Cumulative Performance Summary Card */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
-                <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white border border-slate-200/90 p-5 rounded-xl shadow-xs">
+                <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
                   Semester GPA (SGPA)
                 </p>
-                <div className="flex items-baseline space-x-2 mt-2">
-                  <span className="text-4xl font-extrabold font-mono text-indigo-400">
+                <div className="flex items-baseline gap-2 mt-2">
+                  <span className="text-3xl font-extrabold font-mono tracking-tight text-indigo-700">
                     {marksReport?.sgpa ?? '0.00'}
                   </span>
-                  <span className="text-xs text-slate-400 font-mono">/ 10.0</span>
+                  <span className="text-xs text-slate-400 font-medium">/ 10.0 scale</span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-2 font-mono">
+                <p className="text-[11px] text-slate-500 mt-2 font-mono">
                   Calculated across {marksReport?.totalCredits || 0} enrolled credits
                 </p>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl md:col-span-2 flex flex-col justify-between">
+              <div className="bg-white border border-slate-200/90 p-5 rounded-xl shadow-xs md:col-span-2 flex flex-col justify-between">
                 <div>
-                  <h3 className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+                  <h3 className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
                     Published Gradebook Overview (Rule 5 Guarded)
                   </h3>
-                  <p className="text-xs text-slate-300 mt-1">
-                    Only finalized and officially published assessments are reflected here. Any subsequent score corrections by faculty write an immutable log to <code className="text-indigo-300 font-mono">audit_logs</code>.
+                  <p className="text-xs text-slate-600 mt-1">
+                    Only finalized and officially published assessments are reflected here. Any subsequent score corrections by faculty write an immutable log to <code className="text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded font-mono text-[11px]">audit_logs</code>.
                   </p>
                 </div>
-                <div className="flex items-center space-x-4 text-xs font-mono text-slate-400 mt-3 pt-3 border-t border-slate-800/80">
-                  <span>Subjects Evaluated: <strong className="text-white">{marksReport?.subjectsSummary.length || 0}</strong></span>
-                  <span>Institutional Scale: <strong className="text-emerald-400">10-Point CGPA</strong></span>
+                <div className="flex items-center gap-4 text-xs font-mono text-slate-500 mt-3 pt-3 border-t border-slate-100">
+                  <span>Subjects Evaluated: <strong className="text-slate-900">{marksReport?.subjectsSummary.length || 0}</strong></span>
+                  <span>Institutional Scale: <strong className="text-emerald-700">10-Point CGPA</strong></span>
                 </div>
               </div>
             </div>
 
             {/* Subject-Wise Assessment Tables */}
-            <div className="space-y-5">
+            <div className="space-y-4">
               {(marksReport?.subjectsSummary || []).length === 0 ? (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-                  <Award className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                  <h3 className="text-sm font-semibold text-white">No Published Marks Available</h3>
-                  <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                <div className="bg-white border border-slate-200/90 rounded-xl p-12 text-center shadow-xs">
+                  <Award className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                  <h3 className="text-sm font-semibold text-slate-900">No Published Marks Available</h3>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
                     Your instructors are currently grading in draft mode. Published scores will appear here automatically.
                   </p>
                 </div>
@@ -636,21 +851,21 @@ export const StudentPortal: React.FC = () => {
                 marksReport?.subjectsSummary.map((sub) => (
                   <div
                     key={sub.subject.id}
-                    className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4"
+                    className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs space-y-3.5"
                   >
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                       <div>
-                        <h3 className="font-bold text-sm text-white">
+                        <h3 className="font-bold text-sm text-slate-900">
                           {sub.subject.code} - {sub.subject.name}
                         </h3>
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           Credits: {sub.subject.credits} • Aggregated Score: {sub.totalEarned} / {sub.totalPossible} ({sub.subjectPercentage}%)
                         </p>
                       </div>
 
-                      <div className="flex items-center space-x-3">
-                        <span className="text-xs text-slate-400 font-mono">Grade:</span>
-                        <span className="text-xl font-extrabold font-mono text-indigo-400 bg-indigo-950/70 border border-indigo-800/80 px-2.5 py-0.5 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-slate-500 font-mono">Grade:</span>
+                        <span className="text-xl font-extrabold font-mono text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-lg">
                           {sub.finalGrade}
                         </span>
                       </div>
@@ -658,36 +873,37 @@ export const StudentPortal: React.FC = () => {
 
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-950/60 text-slate-400 font-mono uppercase border-b border-slate-800">
+                        <thead className="bg-slate-50 text-slate-600 font-mono uppercase border-b border-slate-200">
                           <tr>
-                            <th className="py-2 px-3">Assessment</th>
-                            <th className="py-2 px-3">Type</th>
-                            <th className="py-2 px-3">Score</th>
-                            <th className="py-2 px-3">Grade</th>
-                            <th className="py-2 px-3 text-right">Action</th>
+                            <th className="py-2.5 px-3">Assessment</th>
+                            <th className="py-2.5 px-3">Type</th>
+                            <th className="py-2.5 px-3">Score</th>
+                            <th className="py-2.5 px-3">Grade</th>
+                            <th className="py-2.5 px-3 text-right">Action</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/60">
+                        <tbody className="divide-y divide-slate-100">
                           {sub.assessments.map((a) => (
-                            <tr key={a.markId} className="hover:bg-slate-800/30">
-                              <td className="py-2 px-3 font-medium text-slate-200">{a.name}</td>
-                              <td className="py-2 px-3">
-                                <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">
+                            <tr key={a.markId} className="hover:bg-slate-50/70 transition">
+                              <td className="py-2.5 px-3 font-medium text-slate-900">{a.name}</td>
+                              <td className="py-2.5 px-3">
+                                <span className="text-[10px] bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-full font-mono">
                                   {a.type.replace('_', ' ')}
                                 </span>
                               </td>
-                              <td className="py-2 px-3 font-mono font-bold text-white">
+                              <td className="py-2.5 px-3 font-mono font-bold text-slate-900">
                                 {a.isAbsent ? (
-                                  <span className="text-red-400">Absent</span>
+                                  <span className="text-rose-600">Absent</span>
                                 ) : (
                                   `${a.score} / ${a.maxMarks}`
                                 )}
                               </td>
-                              <td className="py-2 px-3 font-mono font-bold text-indigo-400">
+                              <td className="py-2.5 px-3 font-mono font-bold text-indigo-700">
                                 {a.gradeLetter || '-'}
                               </td>
-                              <td className="py-2 px-3 text-right">
+                              <td className="py-2.5 px-3 text-right">
                                 <button
+                                  type="button"
                                   onClick={() =>
                                     setSelectedMarkCorrection({
                                       markId: a.markId,
@@ -696,7 +912,7 @@ export const StudentPortal: React.FC = () => {
                                       maxMarks: a.maxMarks,
                                     })
                                   }
-                                  className="text-[10px] text-indigo-400 hover:text-indigo-300 underline cursor-pointer"
+                                  className="text-[11px] text-indigo-700 hover:text-indigo-900 font-medium underline cursor-pointer"
                                 >
                                   Discrepancy / Review
                                 </button>
@@ -714,44 +930,44 @@ export const StudentPortal: React.FC = () => {
         ) : activeTab === 'attendance' ? (
           <div className="space-y-6">
             {/* Overall Summary Bar */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
-                <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white border border-slate-200/90 p-5 rounded-xl shadow-xs">
+                <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
                   Attendance Overview
                 </p>
-                <div className="flex items-baseline space-x-2 mt-2">
+                <div className="flex items-baseline gap-2 mt-2">
                   <span
-                    className={`text-3xl font-extrabold font-mono ${
-                      attendance?.hasShortage ? 'text-red-400' : 'text-emerald-400'
+                    className={`text-3xl font-extrabold font-mono tracking-tight ${
+                      attendance?.hasShortage ? 'text-rose-600' : 'text-slate-900'
                     }`}
                   >
                     {attendance?.overallPercentage ?? 100}%
                   </span>
-                  <span className="text-xs text-slate-400 font-mono">
+                  <span className="text-xs text-slate-400 font-medium">
                     (Min: {attendance?.threshold ?? 75}%)
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-2">
+                <p className="text-[11px] text-slate-500 mt-2">
                   {attendance?.totalAttended} classes marked present or late out of {attendance?.totalConducted} · late marks count as half credit
                 </p>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl md:col-span-2 flex flex-col justify-between">
+              <div className="bg-white border border-slate-200/90 p-5 rounded-xl shadow-xs md:col-span-2 flex flex-col justify-between">
                 <div>
-                  <h3 className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+                  <h3 className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
                     Institutional Shortage Status
                   </h3>
-                  <p className="text-xs text-slate-300 mt-1">
+                  <p className="text-xs text-slate-600 mt-1">
                     {attendance?.hasShortage
                       ? '⚠️ Warning: Your overall attendance is currently below the required institutional minimum threshold.'
                       : '✅ In Good Standing: Your attendance exceeds the minimum mandatory threshold.'}
                   </p>
                 </div>
-                <div className="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden mt-3 border border-slate-800">
+                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mt-3">
                   <div
                     style={{ width: `${Math.min(100, attendance?.overallPercentage || 100)}%` }}
-                    className={`h-full ${
-                      attendance?.hasShortage ? 'bg-red-500' : 'bg-emerald-500'
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      attendance?.hasShortage ? 'bg-rose-500' : 'bg-emerald-600'
                     }`}
                   />
                 </div>
@@ -760,35 +976,35 @@ export const StudentPortal: React.FC = () => {
 
             {/* Subject-Wise Attendance & What-If Simulators */}
             <div className="space-y-4">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Subject-Wise Breakdown & Correction Request
               </h2>
 
               {(attendance?.subjectMetrics || []).map((subMetric) => (
                 <div
                   key={subMetric.subject.id}
-                  className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4"
+                  className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs space-y-4"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                     <div>
-                      <h3 className="font-bold text-sm text-white">
+                      <h3 className="font-bold text-sm text-slate-900">
                         {subMetric.subject.code} - {subMetric.subject.name}
                       </h3>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-slate-500 mt-0.5">
                         {subMetric.attended} attended • {subMetric.late} late • {subMetric.missed} missed
                       </p>
                     </div>
 
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center gap-2.5">
                       <span
                         className={`text-lg font-bold font-mono ${
-                          subMetric.isShortage ? 'text-red-400' : 'text-emerald-400'
+                          subMetric.isShortage ? 'text-rose-600' : 'text-slate-900'
                         }`}
                       >
                         {subMetric.percentage}%
                       </span>
                       {subMetric.isShortage && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-red-950 text-red-300 border border-red-800 font-mono">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-mono font-semibold">
                           Shortage
                         </span>
                       )}
@@ -805,27 +1021,27 @@ export const StudentPortal: React.FC = () => {
 
                   {/* Session Logs & Correction Request Flow */}
                   <div className="pt-2">
-                    <p className="text-xs font-semibold text-slate-300 mb-2">
+                    <p className="text-xs font-semibold text-slate-700 mb-2">
                       Recent Class Sessions ({subMetric.records.length})
                     </p>
                     <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
                       {subMetric.records.map((r, i) => (
                         <div
                           key={i}
-                          className="flex items-center justify-between p-2 bg-slate-950/60 rounded-xl border border-slate-800/80 text-xs"
+                          className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-200 text-xs"
                         >
-                          <span className="text-slate-300">
+                          <span className="text-slate-700">
                             {new Date(r.date).toLocaleDateString()} (Period {r.period})
                           </span>
 
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center gap-3">
                             <span
                               className={`font-mono text-[11px] font-semibold ${
                                 r.status === 'PRESENT'
-                                  ? 'text-emerald-400'
+                                  ? 'text-emerald-700'
                                   : r.status === 'LATE'
-                                  ? 'text-amber-400'
-                                  : 'text-red-400'
+                                  ? 'text-amber-700'
+                                  : 'text-rose-600'
                               }`}
                             >
                               {r.status}
@@ -833,6 +1049,7 @@ export const StudentPortal: React.FC = () => {
 
                             {r.status !== 'PRESENT' && (
                               <button
+                                type="button"
                                 onClick={() =>
                                   setSelectedCorrectionRecord({
                                     id: r.recordId,
@@ -842,7 +1059,7 @@ export const StudentPortal: React.FC = () => {
                                     currentStatus: r.status,
                                   })
                                 }
-                                className="text-[10px] text-indigo-400 hover:text-indigo-300 underline cursor-pointer"
+                                className="text-[11px] text-indigo-700 hover:text-indigo-900 font-medium underline cursor-pointer"
                               >
                                 Request Correction
                               </button>
@@ -858,46 +1075,52 @@ export const StudentPortal: React.FC = () => {
           </div>
         ) : activeTab === 'canvas' ? (
           <div className="space-y-6">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-              Faculty Classroom Boards & Annotated Slides
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Faculty Classroom Boards & Annotated Slides
+              </h2>
+              <span className="text-xs text-slate-500 font-mono">
+                {sessions.length} Archived Session{sessions.length === 1 ? '' : 's'}
+              </span>
+            </div>
 
             {sessions.length === 0 ? (
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-                <Sparkles className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                <h3 className="text-sm font-semibold text-white">No Archived Lessons Available</h3>
-                <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+              <div className="bg-white border border-slate-200/90 rounded-xl p-12 text-center shadow-xs">
+                <Sparkles className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                <h3 className="text-sm font-semibold text-slate-900">No Archived Lessons Available</h3>
+                <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
                   When instructors conduct whiteboard lessons for your section, they will be archived here for revision.
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {sessions.map((sess) => (
                   <div
                     key={sess.id}
-                    className="bg-slate-900 border border-slate-800 hover:border-slate-700 transition rounded-2xl p-5 flex flex-col justify-between"
+                    className="bg-white border border-slate-200/90 hover:border-slate-300 transition rounded-xl p-5 flex flex-col justify-between shadow-xs"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-mono text-indigo-400 bg-indigo-950/60 border border-indigo-800 px-2 py-0.5 rounded-md">
+                        <span className="text-[10px] font-mono font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded">
                           {sess.subject?.code} • {sess.section?.name}
                         </span>
                         <span className="text-[10px] font-mono text-slate-400">
                           {new Date(sess.sessionDate).toLocaleDateString()}
                         </span>
                       </div>
-                      <h3 className="text-sm font-semibold text-white mt-1 line-clamp-1">
+                      <h3 className="text-sm font-semibold text-slate-900 mt-1 line-clamp-1">
                         {sess.title}
                       </h3>
-                      <p className="text-xs text-slate-400 mt-1">
+                      <p className="text-xs text-slate-500 mt-1">
                         Taught by {sess.faculty?.firstName} {sess.faculty?.lastName} • {sess._count?.pages || 1} slide(s)
                       </p>
                     </div>
 
-                    <div className="mt-5 pt-3 border-t border-slate-800 flex justify-end">
+                    <div className="mt-5 pt-3 border-t border-slate-100 flex justify-end">
                       <button
+                        type="button"
                         onClick={() => openStudentCanvas(sess.id)}
-                        className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition flex items-center space-x-1.5 shadow-md shadow-indigo-600/20 cursor-pointer"
+                        className="saas-btn-primary"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>View Board Lesson</span>
@@ -914,173 +1137,176 @@ export const StudentPortal: React.FC = () => {
           <DoubtsPortal userRole="STUDENT" />
         ) : (
           /* Materials View Content */
-          <>
+          <div className="space-y-6">
             {/* Recently Viewed Carousel */}
-        {recentlyViewed.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-xs uppercase font-semibold text-slate-400 tracking-wider">Recently Viewed</p>
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {recentlyViewed.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => handleOpenViewer(item)}
-                  className="bg-slate-900/80 border border-slate-800 hover:border-indigo-500/50 rounded-xl p-3 w-56 shrink-0 cursor-pointer transition"
-                >
-                  <p className="text-xs font-semibold text-white truncate">{item.title}</p>
-                  <p className="text-[10px] text-slate-500 truncate mt-0.5">{item.subject?.name}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Search, Filter & Bookmark Tabs */}
-        <div className="flex flex-col sm:flex-row items-center gap-3">
-          <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by topic, unit, or keywords..."
-              className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div className="flex items-center space-x-2 w-full sm:w-auto">
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">All Document Types</option>
-              <option value="PDF">PDFs</option>
-              <option value="PPT">Presentations (PPT/PPTX)</option>
-              <option value="DOCX">Word Docs (DOCX)</option>
-              <option value="QUESTION_PAPER">Question Papers</option>
-              <option value="LAB_MANUAL">Lab Manuals</option>
-              <option value="SYLLABUS">Syllabus</option>
-              <option value="VIDEO_LINK">Videos</option>
-            </select>
-
-            <button
-              onClick={() => setBookmarkedOnly(!bookmarkedOnly)}
-              className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition cursor-pointer ${
-                bookmarkedOnly
-                  ? 'bg-amber-950/40 text-amber-300 border-amber-800/80'
-                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
-              }`}
-            >
-              <Bookmark className="w-3.5 h-3.5" />
-              <span>Bookmarks</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Materials Grid */}
-        {loading ? (
-          <div className="p-12 text-center text-slate-500">
-            <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-            <span className="text-xs">Loading course notes...</span>
-          </div>
-        ) : materials.length === 0 ? (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-            <FileText className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-            <h3 className="text-sm font-semibold text-white">No Learning Materials Found</h3>
-            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-              Your instructors haven't published materials matching your criteria yet.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {materials.map((m) => (
-              <div
-                key={m.id}
-                className="bg-slate-900 border border-slate-800 hover:border-slate-700 transition rounded-2xl p-5 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-indigo-950 text-indigo-400 border border-indigo-800 uppercase tracking-wider">
-                      {m.type.replace('_', ' ')}
-                    </span>
-                    <button
-                      onClick={() => toggleBookmark(m.id)}
-                      className="p-1 text-slate-500 hover:text-amber-400 transition cursor-pointer"
-                      title={m.isBookmarked ? 'Remove bookmark' : 'Bookmark material'}
+            {recentlyViewed.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[11px] uppercase font-semibold text-slate-500 tracking-wider">
+                  Recently Viewed
+                </p>
+                <div className="flex gap-3 overflow-x-auto pb-1">
+                  {recentlyViewed.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleOpenViewer(item)}
+                      className="bg-white border border-slate-200 hover:border-indigo-300 rounded-lg p-3 w-56 shrink-0 cursor-pointer transition shadow-xs"
                     >
-                      {m.isBookmarked ? (
-                        <BookmarkCheck className="w-4 h-4 text-amber-400" />
-                      ) : (
-                        <Bookmark className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-
-                  <h3 className="font-semibold text-sm text-white line-clamp-1">{m.title}</h3>
-                  <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-                    {m.description || 'No description provided.'}
-                  </p>
-
-                  <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                    <span className="truncate">{m.subject?.name}</span>
-                    {m.unit && <span className="truncate font-mono">Unit {m.unit.unitNumber}</span>}
-                  </div>
-                </div>
-
-                <div className="mt-5 pt-3 border-t border-slate-800 flex items-center justify-between">
-                  <span className="text-[11px] text-slate-500 truncate">
-                    By {m.createdBy?.firstName} {m.createdBy?.lastName}
-                  </span>
-
-                  <div className="flex items-center space-x-2">
-                    {/* External video link */}
-                    {m.externalUrl ? (
-                      <a
-                        href={m.externalUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="p-2 bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 rounded-lg text-xs font-medium flex items-center space-x-1"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        <span>Watch</span>
-                      </a>
-                    ) : (
-                      <>
-                        {/* Inline Read-Only Viewer */}
-                        <button
-                          onClick={() => handleOpenViewer(m)}
-                          className="flex items-center space-x-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition cursor-pointer shadow-sm shadow-indigo-600/20"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>View (PDF.js)</span>
-                        </button>
-
-                        {/* Strict Server-Enforced Download Button */}
-                        {m.allowDownload ? (
-                          <button
-                            onClick={() => handleDirectDownload(m)}
-                            className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition cursor-pointer"
-                            title="Download file"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                          </button>
-                        ) : (
-                          <span
-                            title="Downloads disabled by instructor"
-                            className="p-1.5 bg-slate-800/40 text-slate-600 rounded-lg cursor-not-allowed"
-                          >
-                            <Lock className="w-3.5 h-3.5" />
-                          </span>
-                        )}
-                      </>
-                    )}
-                  </div>
+                      <p className="text-xs font-semibold text-slate-900 truncate">{item.title}</p>
+                      <p className="text-[10px] text-slate-500 truncate mt-0.5">{item.subject?.name}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+            )}
+
+            {/* Search, Filter & Bookmark Bar */}
+            <div className="bg-white border border-slate-200/90 rounded-xl p-4 shadow-xs flex flex-col sm:flex-row items-center gap-3">
+              <div className="relative flex-1 w-full">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search by topic, unit, or keywords..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/10 outline-none transition"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <select
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value)}
+                  className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-700 focus:bg-white focus:border-indigo-600 outline-none transition cursor-pointer"
+                >
+                  <option value="">All Document Types</option>
+                  <option value="PDF">PDFs</option>
+                  <option value="PPT">Presentations (PPT/PPTX)</option>
+                  <option value="DOCX">Word Docs (DOCX)</option>
+                  <option value="QUESTION_PAPER">Question Papers</option>
+                  <option value="LAB_MANUAL">Lab Manuals</option>
+                  <option value="SYLLABUS">Syllabus</option>
+                  <option value="VIDEO_LINK">Videos</option>
+                </select>
+
+                <button
+                  type="button"
+                  onClick={() => setBookmarkedOnly(!bookmarkedOnly)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border transition cursor-pointer shrink-0 ${
+                    bookmarkedOnly
+                      ? 'bg-amber-50 text-amber-700 border-amber-200 shadow-2xs'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
+                >
+                  <Bookmark className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Bookmarks</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Materials Grid */}
+            {loading ? (
+              <div className="p-12 text-center text-slate-500">
+                <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                <span className="text-xs">Loading course notes...</span>
+              </div>
+            ) : materials.length === 0 ? (
+              <div className="bg-white border border-slate-200/90 rounded-xl p-12 text-center shadow-xs">
+                <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                <h3 className="text-sm font-semibold text-slate-900">No Learning Materials Found</h3>
+                <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                  Your instructors haven't published materials matching your criteria yet.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {materials.map((m) => (
+                  <div
+                    key={m.id}
+                    className="bg-white border border-slate-200/90 hover:border-slate-300 transition rounded-xl p-5 flex flex-col justify-between shadow-xs hover:shadow-sm"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase tracking-wider">
+                          {m.type.replace('_', ' ')}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => toggleBookmark(m.id)}
+                          className="p-1 text-slate-400 hover:text-amber-500 transition cursor-pointer"
+                          title={m.isBookmarked ? 'Remove bookmark' : 'Bookmark material'}
+                        >
+                          {m.isBookmarked ? (
+                            <BookmarkCheck className="w-4 h-4 text-amber-500" />
+                          ) : (
+                            <Bookmark className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+
+                      <h3 className="font-semibold text-sm text-slate-900 line-clamp-1">{m.title}</h3>
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                        {m.description || 'No description provided.'}
+                      </p>
+
+                      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                        <span className="truncate">{m.subject?.name}</span>
+                        {m.unit && <span className="truncate font-mono font-medium">Unit {m.unit.unitNumber}</span>}
+                      </div>
+                    </div>
+
+                    <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                      <span className="text-[11px] text-slate-400 truncate">
+                        By {m.createdBy?.firstName} {m.createdBy?.lastName}
+                      </span>
+
+                      <div className="flex items-center gap-2">
+                        {m.externalUrl ? (
+                          <a
+                            href={m.externalUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="saas-btn-secondary py-1 text-xs"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>Watch</span>
+                          </a>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenViewer(m)}
+                              className="saas-btn-primary py-1 px-2.5 text-xs"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>Preview</span>
+                            </button>
+
+                            {m.allowDownload ? (
+                              <button
+                                type="button"
+                                onClick={() => handleDirectDownload(m)}
+                                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition cursor-pointer"
+                                title="Download file"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                              </button>
+                            ) : (
+                              <span
+                                title="Downloads disabled by instructor"
+                                className="p-1.5 bg-slate-100 text-slate-400 rounded-lg cursor-not-allowed"
+                              >
+                                <Lock className="w-3.5 h-3.5" />
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-        </>
         )}
       </div>
 
